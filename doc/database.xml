@@ -1,0 +1,614 @@
+
+<!-- %W  database.xml    GAP 4 package SingerAlg            Thomas Breuer -->
+<!-- %Y  Copyright 2019, Lehrstuhl D für Mathematik, RWTH Aachen, Germany -->
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Chapter Label="chap:database">
+<Heading>The Database of Low Dimensional Singer Algebras</Heading>
+
+<#Include Label="SingerAlgebraDatabase">
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:functions_database">
+<Heading>Access to the Database of Singer Algebras</Heading>
+
+<#Include Label="OneSingerAlgebraInfo">
+<#Include Label="DisplaySingerAlgebras">
+<#Include Label="BrowseSingerAlgebras">
+
+<#Include Label="IdSingerAlgebra">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:classifications">
+<Heading>On the Classification of Singer Algebras by Isomorphism Type</Heading>
+
+Up to now, the algebras <M>A[q,z]</M>, for <M>z \leq 10000</M>,
+have not yet been fully classified up to isomorphism type.
+The following sections show how the current status of this classification
+can be obtained.
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:datastruct_distribution">
+<Heading>The Datastructure that Describes our Knowledge about
+the Distribution to Isomorphism Types</Heading>
+
+We introduce a global variable <C>KnownDistribution</C>,
+a list that stores at position <M>z</M> (<M>1 \leq z \leq 10000</M>)
+the currently known distribution of the relevant prime residues
+<M>q</M> modulo <M>z</M> (that is, the smallest representatives from
+cyclic groups of prime residues) into equivalence classes.
+Each equivalence class describes the smallest union of isomorphism classes
+of the algebras <M>A[q,z]</M> that is currently known.
+
+<P/>
+
+We encode each equivalence class by a list <M>[ I_1, I_2, \ldots, I_n ]</M>
+where each <M>I_i</M> is a list of values <M>q</M> such that the
+<M>A[q,z]</M> are known to be isomorphic;
+the algebras given by values in different sets <M>I_j</M> can be isomorphic
+or not.
+If <M>n = 1</M> then the equivalence class is known to describe exactly one
+isomorphism class.
+
+<P/>
+
+In the following sections,
+we will successively refine the underlying equivalence relation.
+Initially, we define it by equality of the Loewy vector of <M>A[q,z]</M>
+&ndash;isomorphic algebras have the same Loewy vector&ndash;
+such that the class for the Loewy vector <M>v</M>, say, has the form
+<M>[ [ q_1 ], [ q_2 ], \ldots, [ q_n ] ]</M>,
+where <M>A[q_1,z], A[q_2,z], \ldots, A[q_n,z]</M> are exactly the
+representatives of Singer algebras with Loewy vector <M>v</M>.
+
+<Example><![CDATA[
+gap> maxz:= 10000;;
+gap> KnownDistribution:= [];;
+gap> vectors:= "dummy";;
+gap> for z in [ 1 .. maxz ] do
+>      allforz:= AllSingerAlgebraInfos( "z", z );
+>      vectors:= Set( allforz, r -> MakeImmutable( r.vprime ) );
+>      positions:= List( allforz, r -> Position( vectors, r.vprime ) );
+>      KnownDistribution[z]:= List( vectors, x -> [] );
+>      for i in [ 1 .. Length( positions ) ] do
+>        Add( KnownDistribution[z][ positions[i] ],
+>             [ allforz[i].q ] );
+>      od;
+>    od;
+]]></Example>
+
+We provide a small function that prints information about
+our current knowledge, and call it.
+
+<Example><![CDATA[
+gap> ShowDistributionStatus:= function()
+>    Print( "#I  min. no. of isom. types: ",
+>           Sum( KnownDistribution, Length ), "\n",
+>           "#I  max. no. of isom. types: ",
+>           Sum( List( KnownDistribution,
+>                      l -> Sum( l, Length ) ) ), "\n",
+>           "#I  no. of nontriv. classes: ",
+>           Sum( KnownDistribution,
+>                l -> Number( l, x -> Length( x ) > 1 ) ), "\n",
+>           "#I  no. of entries in these classes: ",
+>           Length( Flat( Filtered( Concatenation( KnownDistribution ),
+>                         x -> Length( x ) > 1 ) ) ), "\n",
+>           "#I  no. of dimensions with open questions: ",
+>           Number( KnownDistribution,
+>                   l -> Maximum( List( l, Length ) ) > 1 ), "\n" );
+>    end;;
+gap> ShowDistributionStatus();
+#I  min. no. of isom. types: 475581
+#I  max. no. of isom. types: 768512
+#I  no. of nontriv. classes: 47834
+#I  no. of entries in these classes: 340765
+#I  no. of dimensions with open questions: 9963
+]]></Example>
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:specialvector_distribution">
+<Heading>Isomorphism of Algebras with Loewy Vector
+<M>(1, k, 1, \ldots, 1)</M></Heading>
+
+By <Cite Key="BHHK1" Where="Prop. 5.2"/>,
+we know that two Singer algebras with the same Loewy vector of the form
+<M>(1, k, 1, \ldots, 1)</M> are isomorphic;
+in particular, two Singer algebras of the same dimension and Loewy length
+<M>3</M> are isomorphic.
+
+<P/>
+
+In the data records, a Loewy vector of the form <M>(1, k, 1, \ldots, 1)</M>
+appears if and only if the <C>vprime</C> component has one of the forms
+<C>[ [ 1, z+1 ] ]</C> or <C>[ 1, z-1, 1 ]</C> or <C>[ 1, k, [ 1, z-k ] ]</C>.
+
+<Example><![CDATA[
+gap> for z in [ 1 .. maxz ] do
+>      for i in [ 1 .. Length( KnownDistribution[z] ) ] do
+>        C:= KnownDistribution[z][i];
+>        vector:= OneSingerAlgebraInfo( "z", z, "q", C[1][1] ).vprime;
+>        if Length( vector ) = 1 or
+>           ( Length( vector ) = 3 and IsInt( vector[2] ) ) then
+>          KnownDistribution[z][i]:= [ Concatenation( C ) ];
+>        fi;
+>      od;
+>    od;
+gap> ShowDistributionStatus();
+#I  min. no. of isom. types: 475581
+#I  max. no. of isom. types: 557645
+#I  no. of nontriv. classes: 31852
+#I  no. of entries in these classes: 113916
+#I  no. of dimensions with open questions: 5714
+]]></Example>
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:canoniso">
+<Heading>Canonical Isomorphisms of Singer Algebras</Heading>
+
+We call <M>A[q,z]</M> and <M>A[q',z]</M> <E>canonically isomorphic</E>
+<Index>canonically isomorphic</Index>
+if the map <M>B(A[q,z])_i \mapsto B(A[q',z])_i</M>,
+for <M>1 \leq i \leq z+1</M>,
+induces an algebra isomorphism <M>A[q,z] \rightarrow A[q',z]</M>.
+By <Cite Key="BHHK2" Where="Lemma 7.5"/>,
+this holds whenever <M>q</M> and <M>q'</M> generate the same group of
+prime residues modulo <M>z</M>,
+and the database contains only one representative of each of the
+equivalence classes defined by this relation.
+However, it turns out that there are many more canonical isomorphisms.
+
+<P/>
+
+The algebras <M>A[q,z]</M> and <M>A[q',z]</M> are canonically isomorphic
+if and only if their multiplication tables w.r.t. the canonical bases
+(see <Ref Func="SingerAlg.MultTable"/>) are equal;
+equivalently, they are canonically isomorphic if their multiplication tables
+w.r.t. the canonical bases contain zero in the same places.
+
+<P/>
+
+The parameters for which canonical isomorphisms occur
+have been computed and stored in the file <F>data/joinsCan.json</F>
+of the package;
+the file is in JSON format, and its contents can also be entered into &GAP;
+by applying <Ref Func="EvalString" BookName="ref"/> to its contents.
+We use these data for refining our equivalence relation.
+The file encodes a list of pairs;
+the first entry of each pair is the relevant value of <M>z</M>,
+and the second is the list of those subsets <M>\{ q_1, q_2, \ldots \}</M>
+such that there are canonical isomorphisms between
+<M>A[q_1,z]</M>, <M>A[q_2,z]</M>, <M>\ldots</M>.
+
+<Example><![CDATA[
+gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
+gap> str:= StringFile( Filename( datadir, "joinsCan.json" ) );;
+gap> joins:= EvalString( str );;
+gap> L:= "dummy";;
+gap> for ll in joins[2] do
+>      # a pair of the form [ z, [ [ q1, q2, ... ], [ ... ], ... ] ]
+>      z:= ll[1];
+>      for i in [ 1 .. Length( KnownDistribution[z] ) ] do
+>        L:= KnownDistribution[z][i];
+>        for j in [ 1 .. Length( L ) ] do
+>          for k in [ 1 .. j-1 ] do
+>            if IsBound( L[k] ) and IsBound( L[j] ) and
+>               ForAny( ll[2],
+>                       l -> IsSubset( l, Set( [ L[j][1], L[k][1] ] ) ) ) then
+>              # join the two classes
+>              Append( L[k], L[j] );
+>              Unbind( L[j] );
+>            fi;
+>          od;
+>        od;
+>        KnownDistribution[z][i]:= SortedList( Compacted( L ) );
+>      od;
+>    od;
+gap> ShowDistributionStatus();
+#I  min. no. of isom. types: 475581
+#I  max. no. of isom. types: 484234
+#I  no. of nontriv. classes: 7042
+#I  no. of entries in these classes: 19924
+#I  no. of dimensions with open questions: 2195
+]]></Example>
+
+Many of the canonical isomorphisms concern algebras <M>A[q,kn,z]</M>
+and <M>A[q^k,n,z]</M>.
+In fact, two such algebras are isomorphic whenever they have the same
+Loewy vector and <M>z \leq 10000</M> holds,
+see Section <Ref Subsect="subsect:inspectjoins"/> for details.
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:permiso">
+<Heading>Permutation Isomorphisms of Singer Algebras</Heading>
+
+We call <M>A[q,z]</M> and <M>A[q',z]</M> <E>permutation isomorphic</E>
+<Index>permutation isomorphic</Index>
+if there is a permutation <M>\pi</M> of the set <M>\{ 1, 2, \ldots, z+1 \}</M>
+such that the map <M>B(A[q,z])_i \mapsto B(A[q',z])_{{\pi(i)}}</M>,
+for <M>1 \leq i \leq z+1</M>,
+induces an algebra isomorphism <M>A[q,z] \rightarrow A[q',z]</M>.
+In the following, we consider only those permutation isomorphisms
+that are not canonical, i. e., where <M>\pi</M> is not the identity.
+
+<P/>
+
+A necessary condition on <M>\pi</M> to induce a permutation isomorphism
+is that the product <M>B(A[q',z])_{{\pi(i)}} \cdot B(A[q',z])_{{\pi(j)}}</M>
+is zero if and only if the product <M>B(A[q,z])_i \cdot B(A[q,z])_j</M>
+is zero, for all <M>i, j \in \{ 1, 2, \ldots, z+1 \}</M>.
+This means that <M>\pi</M> induces a graph isomorphism
+between the two simple undirected graphs
+<M>\Gamma( B(A[q,z]) )</M> and <M>\Gamma( B(A[q',z]) )</M>,
+where <M>\Gamma( B(A[q,z]) )</M> has the vertex set <M>B(A[q,z])</M>
+and there is an edge between <M>B(A[q,z])_i</M> and <M>B(A[q,z])_j</M>
+if and only if <M>B(A[q,z])_i \cdot B(A[q,z])_j</M> is nonzero.
+We use the interface to <Cite Key="Nau90"/>
+provided by &GAP;'s <Package>GraPe</Package> package <Cite Key="GRAPE"/>
+for computing such a graph isomorphism if it exists, and then check whether
+it induces a permutation isomorphism of Singer algebras.
+In order to speed up the computations, we prescribe a partition of the
+vertices that must be respected by the desired graph isomorphism <M>\pi</M>;
+such a partition is given by the property that the numbers of zero entries
+in the <M>i</M>-th and <M>\pi(i)</M>-th row of the multiplication tables
+w.r.t. <M>B(A[q,z])</M> and <M>B(A[q',z])</M> must be equal.
+
+<P/>
+
+The parameters for which permutation isomorphisms occur,
+which are not canonical isomorphisms,
+have been computed and stored in the file <F>data/joinsPerm.json</F>
+of the package;
+the file is in JSON format, and its contents can also be entered into &GAP;
+by applying <Ref Func="EvalString" BookName="ref"/> to its contents.
+We use these data for refining our equivalence relation.
+If we are interested also in explicit permutation isomorphisms
+then we can use the file <F>joinsPermExt.json</F> instead.
+(Note that the size of this file is about 75 MB.)
+
+<Example><![CDATA[
+gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
+gap> str:= StringFile( Filename( datadir, "joinsPerm.json" ) );;
+gap> joins:= EvalString( str );;
+gap> applyjoin:= function( z, q1, q2 )
+>      local i, L, j, k;
+>      for i in [ 1 .. Length( KnownDistribution[z] ) ] do
+>        L:= KnownDistribution[z][i];
+>        for j in [ 1 .. Length( L ) ] do
+>          for k in [ 1 .. j-1 ] do
+>            if IsSubset( Set( [ q1, q2 ] ),
+>                         Set( [ L[j][1], L[k][1] ] ) ) then
+>              # join the two equivalence classes
+>              Append( L[k], L[j] );
+>              Unbind( L[j] );
+>              KnownDistribution[z][i]:= SortedList( Compacted( L ) );
+>              return;
+>            fi;
+>          od;
+>        od;
+>      od;
+>      # This triple was not used at all.
+>      Print( "#E  unnecessary join: ", [ z, q1, q2 ], "\n" );
+>    end;;
+gap> for l in joins[2] do
+>      # 'l' is a triple of the form [ z, q1, q2 ]
+>      CallFuncList( applyjoin, l );
+>    od;
+gap> ShowDistributionStatus();
+#I  min. no. of isom. types: 475581
+#I  max. no. of isom. types: 481744
+#I  no. of nontriv. classes: 5174
+#I  no. of entries in these classes: 15608
+#I  no. of dimensions with open questions: 1754
+]]></Example>
+
+Only <M>94</M> candidate pairs that satisfy the abovementioned 
+necessary criterion for permutation isomorphism do not admit a graph
+automorphism of the graphs <M>\Gamma</M>,
+thus the criterion is quite good.
+
+<P/>
+
+In all cases where a graph isomorphism is returned,
+the proposed permutation really induces an algebra isomorphism.
+This implies:
+Any two Singer algebras in our list
+for which we do not know yet whether they are isomorphic
+are definitely <E>not</E> permutation isomorphic.
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:combinatorial_invariants">
+<Heading>Combinatorial Invariants Distinguishing Singer Algebras</Heading>
+
+We know several subspaces of Singer algebras that are <E>invariant</E>
+under algebra isomorphisms.
+Examples are the members of the radical and socle series,
+and sums and products of invariant subspaces,
+see Section <Ref Sect="sect:combinatorial_structures"/>.
+If we know an invariant subspace such that the dimension is different
+for two Singer algebras then these algebras are not isomorphic.
+
+<P/>
+
+In the following, we consider the combinatorial invariants
+that are used in the function <Ref Func="ConsiderInvariantsByParameters"/>.
+The idea is to run over the nontrivial equivalence classes in
+<C>KnownDistribution</C>,
+and to split these classes whenever we find a distinguishing invariant.
+(There are cases where more than <M>500</M> combinatorial invariants exist.
+We had stopped the computations after at most <M>100</M> of them.)
+
+<P/>
+
+The parameters for which such splits occur
+have been computed and stored in the file <F>data/splitsComb.json</F>
+of the package;
+the file is in JSON format, and its contents can also be entered into &GAP;
+by applying <Ref Func="EvalString" BookName="ref"/> to its contents.
+We use these data for refining our equivalence relation.
+
+<P/>
+
+<Example><![CDATA[
+gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
+gap> str:= StringFile( Filename( datadir, "splitsComb.json" ) );;
+gap> splits:= EvalString( str );;
+gap> applysplit:= function( z, entry, entries, why )
+>      local pos, len, elen, i;
+>      pos:= Position( KnownDistribution[z], entry );
+>      if pos = fail then
+>        Print( "#E  did not find <entry> = ", entry,
+>               " in KnownDistribution[", z, "]\n" );
+>      elif Set( entry ) <> Union( entries ) then
+>        Print( "#E  <entry> = ", entry,
+>               " does not correspond to <entries> = ", entries, "\n" );
+>      else
+>        len:= Length( KnownDistribution[z] );
+>        elen:= Length( entries ) - 1;
+>        for i in [ len, len-1 .. pos+1 ] do
+>          KnownDistribution[z][ i+elen ]:= KnownDistribution[z][i];
+>        od;
+>        KnownDistribution[z]{ [ pos .. pos + elen ] }:= entries;
+>      fi;
+>    end;;
+gap> for l in splits[2] do
+>      CallFuncList( applysplit, l );
+>    od;
+gap> ShowDistributionStatus();
+#I  min. no. of isom. types: 479512
+#I  max. no. of isom. types: 481744
+#I  no. of nontriv. classes: 1934
+#I  no. of entries in these classes: 5422
+#I  no. of dimensions with open questions: 791
+]]></Example>
+
+<!-- The number of invariants to be checked can be large.
+     For example, 1189 invariants are checked until the cases
+     z = 3100, q in [ 29, 89 ] is decided. -->
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:other_invariants">
+<Heading>Other Invariants Distinguishing Singer Algebras</Heading>
+
+As soon as invariants are involved that are not combinatorial,
+in the sense of Section <Ref Sect="sect:combinatorial_structures"/>,
+computations are expected to get harder.
+
+<P/>
+
+An example of such a non-combinatorial invariant is the dimension of the
+matrix Lie algebra of <E>derivations</E>
+(see <Ref Attr="Derivations" BookName="ref"/>).
+This works for low dimensional examples,
+for example the smallest one from the list in <F>data/splitsComb.json</F>,
+which states that <M>A[3,40]</M> and <M>A[19,40]</M> are not isomorphic.
+
+<P/>
+
+<Example><![CDATA[
+gap> splits[2][1];
+[ 40, [ [ 3 ], [ 19 ] ], [ [ [ 3 ] ], [ [ 19 ] ] ], "Roots(0,2,1)" ]
+gap> b:= CanonicalBasis( SingerAlgebra( 3, 40, GF(2) ) );;
+gap> Dimension( Derivations( b ) );
+118
+gap> b:= CanonicalBasis( SingerAlgebra( 19, 40, GF(2) ) );;
+gap> Dimension( Derivations( b ) );
+112
+]]></Example>
+
+<P/>
+
+This argument distiguishes also <M>A[23,182]</M> and <M>A[25,182]</M>,
+where the dimensions of derivations are <M>9514</M> and <M>9502</M>,
+respectively.
+<!-- also for A[29,117] and A[35,117], with derivations of dimensions
+     5591 and 5579, respectively -->
+For both <M>A[11,171]</M> and <M>A[68,171]</M>,
+the algebra of derivations has dimension <M>8048</M>.
+However, these computations run out of space for larger examples.
+
+<P/>
+
+Another type of invariant concerns the number of solutions of an equation.
+A few open questions can be decided by computing the cardinality of the set
+<Display Mode="M">
+    \{ (x,y) \in V \times V; x \cdot y \in U \},
+</Display>
+where <M>U</M> and <M>V</M> are combinatorial subspaces of the algebra
+in question,
+see <Ref Func="SingerAlg.NumberOfProductsInSubspace"/>.
+
+<P/>
+
+These cases are collected in the file <F>data/splitsOther.json</F>.
+Computations of this kind are feasible only if the number of indeterminates
+is small, we call <Ref Func="SingerAlg.NumberOfProductsInSubspace"/>
+with third argument <M>15</M> (which is the default value).
+
+<P/>
+
+<Example><![CDATA[
+gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
+gap> str:= StringFile( Filename( datadir, "splitsOther.json" ) );;
+gap> splits:= EvalString( str );;
+gap> for l in splits[2] do
+>      CallFuncList( applysplit, l );
+>    od;
+gap> ShowDistributionStatus();
+#I  min. no. of isom. types: 479541
+#I  max. no. of isom. types: 481744
+#I  no. of nontriv. classes: 1907
+#I  no. of entries in these classes: 5232
+#I  no. of dimensions with open questions: 784
+]]></Example>
+
+<P/>
+
+Finally, we check whether the currently stored information about the
+distribution to isomorphism types (in the file <F>data/id.json</F> of the
+package) coincides with the above data.
+
+<P/>
+
+<Example><![CDATA[
+gap> str:= Concatenation( "[",
+>              SingerAlg.ComputedIdInfoForSingerAlgebras(), "]" );;
+gap> if EvalString( str ) <> SingerAlg.IdData[2] then
+>      Print( "#E  The stored isomorphism type data are not up to date." );
+>    fi;
+]]></Example>
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="subsect:inspectjoins">
+<Heading>Inspect some of the Canonical Isomorphisms</Heading>
+
+By <Cite Key="BHHK2" Where="proof of Prop.&nbsp;3.6"/>,
+the canonical bases <M>b_0, b_1, \ldots, b_z</M> and
+<M>B_0, B_1, \ldots, B_z</M> of the algebras <M>A[q,kn,z]</M> and
+<M>A[q^k,n,z]</M>, respectively, have the property that
+<M>B_i B_j</M> is nonzero whenever <M>b_i b_j</M> is nonzero;
+the converse is in general not true;
+for example, consider the case <M>n = 1</M>.
+
+<P/>
+
+However,
+it turns out that at least under the condition <M>z \leq 10\,000</M>,
+the converse holds as soon as <M>A[q,kn,z]</M> and <M>A[q^k,n,z]</M>
+have the same Loewy vector.
+Note that this implies that <M>A[q,kn,z]</M> and <M>A[q^k,n,z]</M>
+are then canonically isomorphic.
+
+<P/>
+
+We can verify this observation as follows.
+First we collect, for all <M>z</M>,
+the relevant parameters <M>q</M>, <M>q^k</M>.
+
+<Example><![CDATA[
+gap> candidates:= [];;
+gap> for z in [ 1 .. 10000 ] do
+>      # Fetch the data for this z and sort them by decreasing n.
+>      cand:= AllSingerAlgebraInfos( "z", z );
+>      SortParallel( List( cand, x -> - x.n ), cand );
+>      qs:= List( cand, x -> x.q );
+>      # Run over those candidates for which we know
+>      # that the Loewy vector determines the isomorphism type.
+>      for r in Filtered( cand, r -> Length( r.vprime ) <> 3 ) do
+>        q:= r.q;
+>        n:= r.n;
+>        result:= [ q ];
+>        # Find parameters [ Q, m, z ] such that m divides n
+>        # and Q is the minimal representative of the subgroup of prime
+>        # residues modulo z that is generated by q^(n/m),
+>        # and such that the Loewy vector is the same as for r.
+>        for d in Difference( DivisorsInt( r.n ), [ 1 ] ) do
+>          m:= n/d;
+>          Q:= PowerModInt( q, d, z );
+>          Q:= Minimum( List( PrimeResidues( m ), 
+>                             e -> PowerModInt( Q, e, z ) ) );
+>          if Q = 1 then
+>            Q:= z+1;
+>          fi;
+>          R:= cand[ Position( qs, Q ) ];
+>          if r.vprime = R.vprime then
+>            # The Loewy vectors for q and Q are equal.
+>            AddSet( result, Q );
+>          fi;
+>        od;
+>        if Length( result ) > 1 then
+>          Add( candidates, [ z, result ] );
+>        fi;
+>      od;
+>    od;
+gap> Length( candidates );
+22518
+]]></Example>
+
+<!-- The runtime for this loop is about 21 sec. -->
+
+Then we test whether all these candidates occur in the file that lists
+the precomputed canonical isomorphisms.
+
+<Example>
+gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
+gap> str:= StringFile( Filename( datadir, "joinsCan.json" ) );;
+gap> joins:= EvalString( str )[2];;
+gap> for entry in candidates do
+>      z:= entry[1];
+>      joinsz:= First( joins, l -> l[1] = z );
+>      if not ForAny( joinsz[2], l -> IsSubset( l, entry[2] ) ) then
+>        Error( "did not find ", entry, " among the known canon. isom." );
+>      fi;
+>    od;
+</Example>
+
+</Subsection>
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:database_files">
+<Heading>Files of the Database of Singer Algebras</Heading>
+
+The data files are stored in the <F>data</F> subdirectory of the
+package directory.
+Currently they are all valid JSON (JavaScript Object Notation) texts
+(see <Cite Key="JSON"/>),
+and they are also valid &GAP; code.
+Thus they can be evaluated with <Ref Func="SingerAlg.ContentsOfDataFile"/>.
+
+<P/>
+
+Each file contains a &GAP; list.
+Its first entry is a list of strings that describes the contents and the
+format of the remaining entries.
+
+</Section>
+
+</Chapter>
+

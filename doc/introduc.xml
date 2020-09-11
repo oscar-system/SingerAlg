@@ -1,0 +1,275 @@
+
+<!-- %W  introduc.xml    GAP 4 package SingerAlg            Thomas Breuer -->
+<!-- %Y  Copyright 2019, Lehrstuhl D für Mathematik, RWTH Aachen, Germany -->
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Chapter Label="chap:introduc">
+<Heading>Introduction to the &SingerAlg; Package</Heading>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:aims">
+<Heading>Aims of the &SingerAlg; Package</Heading>
+
+The <E>mathematical aims</E> of the package are
+
+<List>
+<Item>
+  to document the computational results used in the papers
+  <Cite Key="BHHK1"/> and <Cite Key="BHHK2"/>,
+</Item>
+<Item>
+  to give access to &GAP; and &Julia; <Cite Key="Julia"/> implementations
+  of the relevant functions (see Chapter <Ref Chap="chap:functions"/>),
+  and
+</Item>
+<Item>
+  to give access to the known data about the Singer algebras <M>A[q,z]</M>
+  with <M>1 \leq z \leq 10000</M>
+  (see Section <Ref Sect="sect:Singer algebras"/> for the background
+  and Chapter <Ref Chap="chap:database"/> for the database).
+</Item>
+</List>
+
+From the viewpoint of <E>programming</E>,
+the package provides examples how the &GAP;/&Julia; integration
+via the <Package>JuliaInterface</Package> package
+<Cite Key="JuliaInterface"/> can be used
+(see Section <Ref Sect="sect:julia_integration"/>).
+
+From the viewpoint of <E>teaching</E>,
+some aspects of this package and of the papers mentioned above
+would be suitable for a course in elementary number theory,
+with accompanying computational experiments.
+Note that one can neglect the representation theoretic background,
+and restrict the needed theory to knowledge of the group of prime residues
+modulo an integer, g.c.d. computations, and linear algebra;
+for examples, see Chapter <Ref Chap="chap:tutorial"/>,
+in particular Section <Ref Sect="sect:numtheor"/>,
+and Chapter <Ref Chap="chap:database"/>.
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:Singer algebras">
+<Heading>Theoretical Background: Singer algebras</Heading>
+
+Let <M>z</M> be a positive integer,
+and <M>q \in \{ 2, 3, \ldots, z+1 \}</M> be coprime to <M>z</M>.
+Let <M>n = &ord;_z(q)</M> denote
+the multiplicative order of <M>q</M> modulo <M>z</M>,
+and let <M>e = (q^n-1)/z</M>.
+We define the <E>Singer algebra</E> <M>A[q,z]</M> as
+the free <M>&ZZ;</M>-module spanned by <M>(b_0, b_1, \ldots, b_z)</M>
+where the multiplication is given by <M>b_i \cdot b_j = b_{{i+j}}</M>
+if the pointwise sum of the <M>q</M>-adic expansions of <M>i e</M>
+and <M>j e</M> does not exceed <M>q-1</M>
+(that is, there is no carry in the <M>q</M>-adic addition of <M>i e</M>
+and <M>j e</M>),
+and <M>b_i \cdot b_j = 0</M> otherwise.
+
+<P/>
+
+<Index>monomial</Index>
+<Index>degree</Index>
+Another interpretation of <M>A[q,z]</M> and the basis of <M>b_i</M>
+is as follows (see <Cite Key="BHHK2" Where="Section 1"/>).
+Consider the factor of the polynomial ring
+<M>R = &ZZ;[X_1, X_2, \ldots, X_n]</M>
+modulo the ideal <M>I</M> spanned by <M>X_1^q, X_2^q, \ldots, X_n^q</M>.
+Then <M>A[q,z]</M> is isomorphic to a subalgebra of this algebra,
+via mapping <M>b_k</M> to the monomial
+<M>x_1^{{i_1}} x_2^{{i_2}} \cdots x_n^{{i_n}}</M>,
+where <M>i_1 + q i_2 + \cdots + q^{{n-1}} i_n = k e</M> and
+<M>x_i = X_i + I</M>.
+This interpretation motivates the terms <Q>monomials</Q> for the <M>b_i</M>
+and <Q>degree</Q> for the sum <M>i_1 + i_2 + \cdots i_n</M>;
+these terms occur in the names and descriptions of several functions
+of this package.
+
+<P/>
+
+The algebra <M>A[q,z]</M> is called <M>A(q,n,e)</M> and <M>A[q,n,z]</M>
+in <Cite Key="BHHK1"/> and <Cite Key="BHHK2"/>,
+where <M>n</M> is required to be a multiple of <M>&ord;_e(q)</M> or
+<M>&ord;_z(q)</M>, respectively,
+and <M>q</M> can be any integer larger than <M>1</M> that is coprime to
+<M>e</M> or <M>z</M>, respectively.
+For the purposes of this &GAP; package,
+it is more suitable to consider the parameters <M>q</M> and <M>z</M>,
+as introduced above.
+In particular, these numbers are small for low dimensional algebras,
+whereas the number <M>e</M> can be quite large,
+see Section <Ref Subsect="large_e_examples"/>.
+
+<P/>
+
+Note that <M>A[q,n,z]</M> is isomorphic to <M>A[q,&ord;_z(q),z]</M>
+for each multiple <M>n</M> of <M>&ord;_z(q)</M>,
+by <Cite Key="BHHK2" Where="Lemma 7.1"/>,
+and <M>A[q,z]</M> is isomorphic to <M>A[q',z]</M> whenever
+<M>q</M> and <M>q'</M> generate the same subgroup of prime residues modulo
+<M>z</M>, by <Cite Key="BHHK2" Where="Lemma 7.5"/>.
+
+<P/>
+
+For any prime integer <M>p</M>,
+<M>A[q,z]_p = \bigoplus_{{0 \leq i \leq z}} &FF;_p b_i</M> denotes the
+reduction of <M>A[q,z]</M> modulo <M>p</M>.
+We call <M>(b_0, b_1, \ldots, b_z)</M> the <E>canonical basis</E> of
+<M>A[q,z]</M> and <M>A[q,z]_p</M>,
+and denote it by <M>B(A[q,z])</M> and <M>B(A[q,z]_p)</M>, respectively.
+Note that the <M>i</M>-th basis vector is <M>B(A[q,z])_i = b_{{i-1}}</M>.
+
+<P/>
+
+The name <Q>Singer algebra</Q> was chosen because these algebras occur
+in the following context.
+
+<P/>
+
+Let <M>p</M> be a prime,
+<M>n</M> be a positive integer,
+<M>F</M> be the field with <M>p^n</M> elements,
+and <M>F_1</M> be the prime field of <M>F</M>.
+
+<P/>
+
+We choose an element <M>\sigma</M> of order <M>p^n - 1</M> in the group
+<M>GL(n,F_1)</M>, a so-called <E>Singer cycle</E>,
+let <M>e</M> be a divisor of <M>p^n - 1</M>,
+and set <M>z = (p^n - 1) / e</M>.
+
+<P/>
+
+The cyclic group <M>H = \langle \sigma^z \rangle</M> of order <M>e</M>
+acts naturally on the elementary abelian group
+<M>P = \langle x_1, x_2, \ldots, x_n \rangle</M> of order <M>p^n</M>.
+This action extends to the group algebra <M>F P</M>,
+and we may consider the algebra <M>(F P)^H</M> of fixed points in <M>F P</M>
+under this action.
+As is described in <Cite Key="BHHK2" Where="Section 2"/>,
+we can construct an <M>F</M>-basis of <M>F P</M> that consists of
+eigenvectors for the action of <M>H</M>.
+This yields a basis of <M>(F P)^H</M>, for which the multiplication rules
+stated above for <M>A[q,z]</M> can be derived.
+In other words, <M>(F P)^H</M> is isomorphic with
+<M>F \otimes_{{F_1}} A[q,z]_p</M>.
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:julia_integration">
+<Heading>&GAP;-&Julia; Integration in the &SingerAlg; Package</Heading>
+
+If the &SingerAlg; package is used together with the &GAP; package
+<Package>JuliaInterface</Package> <Cite Key="JuliaInterface"/> then
+both &GAP; and &Julia; implementations of most of the package's functions
+are available.
+For example, there are the functions
+<Ref Oper="LoewyLengthGAP" Label="for Singer algebra parameters"/> and
+<Ref Oper="LoewyLengthJulia" Label="for Singer algebra parameters"/>
+for computing the Loewy length of a Singer algebra from its defining
+parameters.
+There is also the function
+<Ref Oper="LoewyLength" Label="for Singer algebra parameters"/>,
+which uses one of the two implementations.
+By default, the &Julia; code is used for computations if
+<Package>JuliaInterface</Package> is available,
+and the &GAP; code is used by default if not.
+
+<P/>
+
+Note that some of the &Julia; functions call &GAP; functions.
+For example, the factorization of large integers in &GAP; and its package
+<Package>FactInt</Package> <Cite Key="FactInt"/> are (currently) faster
+than the corresponding functions from &Julia;'s <C>Primes</C> package.
+In order to achieve a <Q>fair</Q> comparison of the runtimes in &GAP; and
+&Julia;, we call the &GAP; function <Ref Func="Factors" BookName="ref"/>
+in both situations.
+
+<P/>
+
+Note also that &Julia; objects are stored as the values of &GAP; attributes
+such as <Ref Attr="LoewyStructureInfoJulia" Label="for a Singer algebra"/>,
+and some &Julia; functions take a &GAP; object as an argument, in order
+to benefit from its attribute values if applicable.
+
+<P/>
+
+One can also use the &Julia; functions in a &Julia; session,
+by loading the file <F>julia/SingerAlg.jl</F> into &Julia; with
+<C>include</C>;
+afterwards the &Julia; functions are accessible in the &Julia; module
+<C>"SingerAlg"</C>.
+This approach requires the &Julia; package <C>GAP.jl</C> (and thus a &Julia;
+compatible installation of &GAP;).
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:Installation">
+<Heading>Installation of the &SingerAlg; Package</Heading>
+
+The &SingerAlg; package itself consists only of &GAP; (and &Julia;) code,
+it is in principle enough to unpack the archive in a <F>pkg</F> directory
+of a &GAP; installation, and then to load the package into the &GAP; session.
+
+<P/>
+
+However, if one wants to use the &Julia; implementations of the package's
+functions then the &GAP; package <Package>JuliaInterface</Package>
+<Cite Key="JuliaInterface"/> must be available.
+In particular, the &GAP; installation must be done using &Julia;'s
+garbage collector in this case;
+one can check this by looking at the value of <C>GAPInfo.KernelInfo.GC</C>:
+If it is <C>"Julia GC"</C> then <Package>JuliaInterface</Package> can be
+loaded (provided it is installed), otherwise &Julia; features are not
+available.
+
+<P/>
+
+The easiest way to install &GAP; with &Julia;'s garbage collector is
+to install &Julia; (see <URL>https://julialang.org/downloads/</URL>),
+then ask &Julia;'s package manager to download and install &GAP;
+(by entering <C>using Pkg; Pkg.add( "GAP" )</C> at the &Julia; prompt),
+and then to use the &SingerAlg; package with this version of &GAP;.
+
+<P/>
+
+For one function of the package
+(<Ref Func="SingerAlg.ProposedPermutationIsomorphism"/>),
+the interface to <Cite Key="Nau90"/> provided by &GAP;'s
+<Package>GraPe</Package> package <Cite Key="GRAPE"/> is needed;
+if one wants to use this function
+&ndash;see for example Section <Ref Subsect="subsect:permiso"/>&ndash;
+then <Package>GraPe</Package> must be installed.
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sec:acknowledgements">
+<Heading>Acknowledgements</Heading>
+
+The development of this &GAP; package has been supported
+by the <URL><Link>https://www.computeralgebra.de/sfb/</Link>
+<LinkText>SFB-TRR 195
+<Q>Symbolic Tools in Mathematics and their Applications</Q></LinkText></URL>
+(from 2017 until 2020).
+
+Thanks to the coauthors of the papers <Cite Key="BHHK1"/> and
+<Cite Key="BHHK2"/>, Erzsébet Horváth, László Héthelyi,
+and Burkhard Külshammer, for many discussions and suggestions
+that contributed to this package.
+
+Thanks to Bettina Eick for hints about invariants,
+see Section <Ref Sect="sect:invariants"/>.
+
+</Section>
+
+</Chapter>
+

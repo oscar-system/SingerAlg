@@ -1,0 +1,148 @@
+
+<!-- %W  questions.xml   GAP 4 package SingerAlg            Thomas Breuer -->
+<!-- %Y  Copyright 2019, Lehrstuhl D für Mathematik, RWTH Aachen, Germany -->
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Chapter Label="chap:questions">
+<Heading>Questions</Heading>
+
+<List>
+<Item>
+   Easy task:
+   Formulate the theoretic proofs of isomorphism for Loewy vector
+   <M>(1,k,1,\ldots,1)</M> for the special case of Singer algebras,
+   remove the conditions on characteristic and fact that alg. closed.
+   (How do the b_i map to the x_i, y_j in the proof in the paper?)
+</Item>
+<Item>
+   Loewy length formula for <M>n = 4</M>?
+   (If the bound is not attained then <M>e = 2e_1</M>, and ...)
+   Look at more examples and hope for a counterexample,
+   or try a theoretical proof?
+</Item>
+<Item>
+   Is there an infinite series of parameter pairs
+   <M>(q,z)</M>, <M>(q',z)</M> with the same Loewy vector such that
+   <M>A[q,z]</M> and <M>A[q',z]</M> are nonisomorphic?
+   (The examples with <M>z = 117 p</M> for small primes <M>p</M>
+   could look promising.)
+</Item>
+<Item>
+   Classification of
+   <M>|\{ s_q(ke); 1 \leq k &lt; z \}| = 1</M>?
+   (Under this condition, we have <M>s_q(ke) = n(q-1)/2</M>
+   for all <M>1 \leq k &lt; z</M>.
+   Is this condition equivalent to <M>(q^{{n/2}}-1 \mid e</M>?)
+</Item>
+<Item>
+   Does the bound hold for <M>e</M> dividing <M>(q^6-1)/(q-1)</M>?
+</Item>
+<Item>
+   Is there a closed formula for the Loewy length in case <M>n = 3</M>,
+   analogous to the one in ... for <M>n = 2</M>?
+</Item>
+<Item>
+   How many isomorphism types of algebras <M>A(q,n,e)</M> can exist
+   if the Loewy length is <M>4</M>?
+</Item>
+<Item>
+   For which values of <M>z</M> do we have open cases
+   in the classification by isomorphism types?
+   (patterns?)
+</Item>
+<Item>
+   Is it possible that <M>A[q,k n,z]</M> and <M>A[q^k,n,z]</M> have the same
+   Loewy vector but are not naturally isomorphic?
+
+   Note that in this case, one direction is clear:
+   No overflow in addition mod <M>q</M> implies no overflow in
+   addition mod <M>q^k</M> for corresponding pairs of basis vectors.
+   For the other direction, one would need that in case of an overflow
+   mod <M>q</M> in one position where there is no overflow mod <M>q^k</M>,
+   there is another position in the coefficient vector where one has also
+   overflow mod <M>q^k</M>.
+
+   (Look at example <M>A[9,6,65]</M> vs. <M>A[3,12,65]</M>:
+   The only pairs of coefficients mod 9
+   where one has overflow mod 3 but not mod 9
+   are (1,2), (1,5), (2,2), (2,4), (2,5).)
+</Item>
+<Item>
+   Is it possible that two Singer algebras are nonisomorphic over
+   the ring of integers, but they have isomorphic reduction modulo
+   some prime integer?
+</Item>
+<Item>
+   Why does the expression
+   <C>"Prod(Root0(3,1),Root0(2,1))"</C>
+   not describe a valid invariant?
+   (Is there an example in the database that documents this,
+   that is, a pair of isomorphic Singer algebras for which the
+   corresponding formal subspace has different dimensions?)
+   <!--example at positions [ 263231, 263313 ] -->
+</Item>
+</List>
+
+<!--
+
+I had computed that $A[29,6,117]$ and $A[35,6,117]$ are not isomorphic.
+Note that both algebras have the Loewy vector $[ 1, 104, 12, 1 ]$,
+that the ``cheap invariants'' are the same,
+and that one can distinguish the two algebras by considering the algebras
+over the field with two elements and then counting the numbers
+of pairs $(a,b) \in J \times J$ with the property that $a b = c^2$
+for some $c \in J$ are different.
+
+The latter criterion to decide whether two algebras are isomorphic or not
+looks feasible only if the dimension of $J^2$ is small.
+Looking at the open cases with $\dim( J^2 )= 12$ yields the following
+list of nonisomorphic algebras $A[q_1,n_1,z]$, $A[q_2,n_2,z]$
+with Loewy vector $[ 1, z-13, 12, 1 ]$.
+
+   q_1 | n_1 | q_2 | n_2 |    z | z/117
+----------------------------------------
+    29 |   6 |  35 |   6 |  117 |     1
+    29 |  30 |  35 |  30 | 1287 |    11
+    29 |  78 |  35 |  78 | 1521 |    13
+    29 |  48 | 107 |  48 | 1989 |    17
+    29 |  18 |  35 |  18 | 2223 |    19
+    29 |  66 |  35 |  66 | 2691 |    23
+   113 |  84 |  35 |  42 | 3393 |    29
+    29 |  30 | 152 |  30 | 3627 |    31
+   113 |  36 |  35 |  36 | 4329 |    37
+    29 | 120 |  35 | 120 | 4797 |    41
+    29 |  42 |  35 |  42 | 5031 |    43
+    29 | 138 |  35 | 138 | 5499 |    47
+    29 |  78 |  35 | 156 | 6201 |    53
+    29 | 174 |  35 | 174 | 6903 |    59
+   113 |  30 |  35 |  60 | 7137 |    61
+   113 |  66 |  35 |  66 | 7839 |    67
+    29 | 210 |  35 | 210 | 8307 |    71
+    29 |  72 |  35 |  36 | 8541 |    73
+    29 |  78 |  35 |  78 | 9243 |    79
+    29 | 246 |  35 | 246 | 9711 |    83
+
+Note that the smallest examples $A[29,6,117]$ and $A[35,6,117]$ occur as
+subalgebras in the bigger cases.
+(We have $A[107,6,117] \cong A[35,6,117] \cong A[152,6,117]$ and
+$A[113,6,117] \cong A[29,6,117]$.)
+Even the computed numbers of pairs, restricted to the subspaces where
+conditions on the coefficients exist, are the same as in the smallest
+examples.
+
+-->
+
+At the end of this manual,
+we reset the user preference <C>DisplayFunction</C> of the package
+to its original value.
+
+<Example><![CDATA[
+gap> SetUserPreference( "SingerAlg", "DisplayFunction", origpref );
+]]></Example>
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+</Chapter>
+
+

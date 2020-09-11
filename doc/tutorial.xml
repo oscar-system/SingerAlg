@@ -1,0 +1,449 @@
+
+<!-- %W  tutorial.xml    GAP 4 package SingerAlg            Thomas Breuer -->
+<!-- %Y  Copyright 2019, Lehrstuhl D für Mathematik, RWTH Aachen, Germany -->
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Chapter Label="chap:tutorial">
+<Heading>Tutorial for the <Package>SingerAlg</Package> package</Heading>
+
+This chapter shows small introductory computations with the functions
+of the package.
+More examples can be found in Section <Ref Sect="sect:classifications"/>.
+
+<P/>
+
+In order to force that the examples in this manual consist only of
+ASCII characters, we set the user preference <C>DisplayFunction</C>
+of the package (see Section <Ref Subsect="subsect:displayfunction"/>)
+to the value <C>"Print"</C>.
+This is necessary because the &LaTeX; and HTML versions of &GAPDoc;
+documents do not support non-ASCII characters.
+
+<P/>
+
+<Example><![CDATA[
+gap> origpref:= UserPreference( "SingerAlg", "DisplayFunction" );;
+gap> SetUserPreference( "SingerAlg", "DisplayFunction", "Print" );
+]]></Example>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:basic_singer_algebras">
+<Heading>How to Study Singer Algebras</Heading>
+
+The definition of Singer algebras given in
+Section <Ref Sect="sect:Singer algebras"/> suggests that &GAP;'s tools for
+algebras defined by structure constants (see Section
+<Ref Sect="Constructing Algebras by Structure Constants" BookName="ref"/>)
+might be suitable for them, and
+Section <Ref Sect="sect:functions"/> takes this approach.
+
+<P/>
+
+However, the fact that the canonical bases of Singer algebras have a very
+special structure &ndash;the product of two basis elements is either
+another basis element or zero&ndash; implies that many interesting
+subalgebras and subspaces can be described in terms of subsets of the
+canonical basis.
+Thus many questions can be answered using combinatorial computations,
+without the need to add or multiply or even create elements of the algebra.
+Section <Ref Sect="sect:combinatorial_structures"/> lists functions
+where this approach is taken.
+
+<P/>
+
+Most of the functions of the &SingerAlg; package do not involve objects
+that represent algebraic structures.
+In particular, the &Julia; code does not introduce such objects.
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:numtheor">
+<Heading>Number Theoretic Caveats</Heading>
+
+When one deals with Singer algebras <M>A[q,z] = A(q,n,e)</M>,
+with <M>q^n-1 = e z</M>,
+seemingly trivial computations can become expensive even if the dimensions
+(equal to <M>z+1</M>) and the parameters <M>q</M> and <M>n</M> are small,
+because the number <M>e</M> can still be huge;
+see Section <Ref Subsect="large_e_examples"/> for examples.
+The point is that there are situations where one can (and then should) avoid
+dealing with large numbers, but there are also situations where this is not
+possible.
+Since &GAP; knows just one type of integers, there is no need to write
+different &GAP; code for computations with small or large integers.
+This is different in &Julia;, where one can (and wants to) write special code
+for computing with small integers whenever one knows in advance that
+there will be no overflow.
+
+<P/>
+
+Other computational problems arise from factorization questions.
+One instance is the computation of the multiplicative order of <M>q</M>
+modulo <M>z</M> or <M>e</M>;
+an example where calling <C>OrderMod( </C><M>q</M><C>, </C><M>e</M><C> )</C>
+runs into problems is shown in the documentation of
+<Ref Func="OrderModExt"/>.
+Here the point is that one should enter a known multiple of the desired
+multiplicative order as the third argument of <Ref Func="OrderModExt"/>
+whenever this is possible.
+
+<P/>
+
+Also primality tests in the context of natural questions about
+Singer algebras may run into problems,
+see Section <Ref Subsect="primality_tests"/>.
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="large_e_examples">
+<Heading>Large values of <M>e</M></Heading>
+
+Computational examples in the study of <M>A(q,n,e)</M>
+often avoid dealing with <M>e</M> because this number can be very large
+when the algebra itself has small dimension.
+Let us look at the database of <M>A[q,z]</M> with <M>z \leq &MAXZ;</M>.
+
+<P/>
+
+<Example><![CDATA[
+gap> cand:= AllSingerAlgebraInfos( "e", e -> e > 2^64 );;   
+gap> Length( cand );                                     
+543989
+gap> cand:= AllSingerAlgebraInfos( "e", e -> e > 10^10000 );;         
+gap> Length( cand );
+12
+gap> SortParallel( List( cand, r -> r.e ), cand );
+gap> cand[ Length( cand ) ];
+rec( LL := 3, d := [ 1, 9438 ], dec := 0, diff := 0, 
+  e := <integer 646...617 (12666 digits)>, isom := [ 9439, 2 ], 
+  m := 99099, n := 9438, q := 22, vprime := [ 1, 9438, 1 ], z := 9439 
+ )
+]]></Example>
+
+<P/>
+
+We see that for the majority of entries in the database,
+the value of <M>e</M> cannot be represented by a 64-bit integer,
+and that the largest value of <M>e</M> in the database is bigger than
+<M>10^{12666}</M>.
+
+<P/>
+
+When one deals with <M>A[q,z]</M>,
+one of the basic tasks is to compute the <M>q</M>-adic coefficients
+of some multiple of <M>e</M>, i.&nbsp;e., to write
+<M>k e = \sum_{{i = 0}}^n a_i q^i</M>, with <M>0 \leq a_i &lt; q</M>.
+By <Cite Key="BHHK2" Where="Remark 2.23 (iv)"/>,
+one can compute the <M>a_i</M> without dealing explicitly with numbers
+of the magnitude of <M>e</M>.
+
+<P/>
+
+<Example><![CDATA[
+gap> q:= 22;;  n:= 9438;;  z:= 9439;;
+gap> e:= (q^n-1)/z;;
+gap> coeffs1:= CoefficientsQadic( e, q );;
+gap> coeffs2:= CoefficientsQadicReversed( 1, z, q, n );;
+gap> Length( coeffs1 );
+9436
+gap> Length( coeffs2 );
+9438
+gap> coeffs1 = Reversed( coeffs2 ){[1..9436]};  
+true
+]]></Example>
+
+<P/>
+
+Note that <Ref Func="CoefficientsQadicReversed"/> is several times faster
+than <Ref Oper="CoefficientsQadic" BookName="ref"/>;
+the two functions in question are interpreted &GAP; functions.
+
+<!-- The factor is about 3 on my old notebook,
+     and much larger on the new one (with Ryzen processor). -->
+
+The &Julia; variant <C>Julia.SingerAlg.CoefficientsQadicReversed</C>
+is faster than the &GAP; function <Ref Func="CoefficientsQadicReversed"/>,
+whereas the &Julia; variant <C>Julia.SingerAlg.CoefficientsQadic</C>
+needs about the same time as <Ref Oper="CoefficientsQadic" BookName="ref"/>.
+Note that computations with small integers are much faster in &Julia;
+than in &GAP;,
+but that the &Julia; data type of big integers is not supported well.
+
+</Subsection>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Subsection Label="primality_tests">
+<Heading>Primality tests</Heading>
+
+Suppose we want to check whether <Cite Key="BHHK2" Where="Thm. 4.3 (i)"/>
+yields that the Loewy length of a given Singer algebra <M>A(q,n,e)</M>
+is equal to the upper bound <M>\lfloor n (q-1) / m(q,e) \rfloor + 1</M>;
+for that, we have to decide whether <M>e/2</M> is a prime power.
+
+<P/>
+
+In the case of <M>(q, z) = (8390, 21)</M>, &GAP; prints a message
+and then nothing happens for a long time.
+
+<P/>
+
+<Log><![CDATA[
+ap> z:= 8390;
+8390
+gap> r:= OneSingerAlgebraInfo( "z", z, "q", 21 );;
+gap> LogInt( r.e, 10 );
+550
+gap> IsEvenInt( r.e );
+true
+gap> IsPrimePowerInt( r.e/2 );
+#I  Straightforward Fermat-Lucas primality proof failed on 6096...
+[...]
+]]></Log>
+
+<P/>
+
+(Fortunately, we need not check whether <M>e/2</M> is a prime power;
+if we look into the proof of <Cite Key="BHHK2" Where="Thm. 4.3 (i)"/>,
+we find out that a cheaper criterion can be used.)
+
+</Subsection>
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="show_display_examples">
+<Heading>Some Examples from the Papers</Heading>
+
+We show the examples of Singer algebras <M>A(q,n,e)</M>
+that appear in <Cite Key="BHHK1"/>.
+See Section <Ref Sect="sect:Singer algebras"/> for the meaning of the term
+<Q>monomial</Q>, and
+Section <Ref Func="DisplaySingerMonomials" Label="for parameters q, n, e"/>
+for the meaning of the output that is shown.
+
+<P/>
+
+<M>(q,n,e) = (3,4,5)</M>, <Cite Key="BHHK1" Where="Example 3.2"/>:
+
+<Example><![CDATA[
+gap> DisplaySingerMonomials( 3, 4, 5 );
+A[3,4,16]
+
+0 | 1 |  0
+1 | 6 |  1  2  3  6  9 11
+2 | 7 |  4  5  7  8 12 13 15
+3 | 2 | 10 14
+4 | 1 | 16
+gap> DisplaySingerMonomials( 3, 4, 5 : m );
+A[3,4,16]
+
+0 | 1 | (0,0,0,0)
+1 | 6 | (0,0,2,1) (0,1,0,1) (0,2,1,0) (1,0,0,2) (1,0,1,0) (2,1,0,0)
+2 | 7 | (0,1,2,2) (0,2,0,2) (1,1,1,1) (1,2,2,0) (2,0,1,2) (2,0,2,0)
+  |   | (2,2,0,1)
+3 | 2 | (1,2,1,2) (2,1,2,1)
+4 | 1 | (2,2,2,2)
+]]></Example>
+
+<P/>
+
+<M>(q,n,e) = (13,2,8)</M>, <Cite Key="BHHK1" Where="Example 3.3"/>:
+
+<Example><![CDATA[
+gap> DisplaySingerMonomials( 13, 2, 8 );
+A[13,2,21]
+
+0 | 1 |  0
+1 | 4 |  1  2  5 13
+2 | 5 |  3  4  7 10 18
+3 | 4 |  6  9 12 15
+4 | 5 |  8 11 14 17 20
+5 | 2 | 16 19
+6 | 1 | 21
+gap> DisplaySingerMonomials( 13, 2, 8 : m );
+A[13,2,21]
+
+0 | 1 | ( 0, 0)
+1 | 4 | ( 0, 8) ( 1, 3) ( 3, 1) ( 8, 0)
+2 | 5 | ( 1,11) ( 2, 6) ( 4, 4) ( 6, 2) (11, 1)
+3 | 4 | ( 3, 9) ( 5, 7) ( 7, 5) ( 9, 3)
+4 | 5 | ( 4,12) ( 6,10) ( 8, 8) (10, 6) (12, 4)
+5 | 2 | ( 9,11) (11, 9)
+6 | 1 | (12,12)
+]]></Example>
+
+<P/>
+
+<M>(q,n,e) = (5,4,78)</M>, <Cite Key="BHHK1" Where="Example 5.1"/>:
+
+<Example><![CDATA[
+gap> DisplaySingerMonomials( 5, 4, 78 );
+A[5,4,8]
+
+0 | 1 | 0
+1 | 3 | 1 2 5
+2 | 3 | 3 4 7
+3 | 1 | 6
+4 | 1 | 8
+gap> DisplaySingerMonomials( 5, 4, 78 : m );
+A[5,4,8]
+
+0 | 1 | (0,0,0,0)
+1 | 3 | (0,3,0,3) (1,1,1,1) (3,0,3,0)
+2 | 3 | (1,4,1,4) (2,2,2,2) (4,1,4,1)
+3 | 1 | (3,3,3,3)
+4 | 1 | (4,4,4,4)
+]]></Example>
+
+<P/>
+
+<M>(q,n,e) = (11,2,4)</M>, <Cite Key="BHHK1" Where="Example 5.2"/>:
+
+<Example><![CDATA[
+gap> DisplaySingerMonomials( 11, 2, 4 );
+A[11,2,30]
+
+ 0 | 1 |  0
+ 1 | 3 |  1  3 11
+ 2 | 5 |  2  4  6 14 22
+ 3 | 5 |  5  7  9 17 25
+ 4 | 5 |  8 10 12 20 28
+ 5 | 3 | 13 15 23
+ 6 | 3 | 16 18 26
+ 7 | 3 | 19 21 29
+ 8 | 1 | 24
+ 9 | 1 | 27
+10 | 1 | 30
+gap> DisplaySingerMonomials( 11, 2, 4 : m );
+A[11,2,30]
+
+ 0 | 1 | ( 0, 0)
+ 1 | 3 | ( 0, 4) ( 1, 1) ( 4, 0)
+ 2 | 5 | ( 0, 8) ( 1, 5) ( 2, 2) ( 5, 1) ( 8, 0)
+ 3 | 5 | ( 1, 9) ( 2, 6) ( 3, 3) ( 6, 2) ( 9, 1)
+ 4 | 5 | ( 2,10) ( 3, 7) ( 4, 4) ( 7, 3) (10, 2)
+ 5 | 3 | ( 4, 8) ( 5, 5) ( 8, 4)
+ 6 | 3 | ( 5, 9) ( 6, 6) ( 9, 5)
+ 7 | 3 | ( 6,10) ( 7, 7) (10, 6)
+ 8 | 1 | ( 8, 8)
+ 9 | 1 | ( 9, 9)
+10 | 1 | (10,10)
+]]></Example>
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="n=4">
+<Heading>Example: The case <M>n = 4</M></Heading>
+
+For fixed (small) <M>n</M>, we are interested in the question
+for which values of <M>q</M> and <M>z</M> the upper bound
+<M>\lfloor n (q-1) / m(q,e) \rfloor + 1</M> on the Loewy length
+of <M>A[q,n,z]</M> is not attained.
+
+<P/>
+
+If <M>n \leq 3</M> holds then we know by <Cite Key="BHHK1" Where="Cor. 7.1"/>
+that the upper bound is always attained.
+For <M>n = 5</M>, the database of Singer algebras contains a few examples
+where the bound is not attained
+(cf. <Cite Key="BHHK2" Where="Remark 7.13"/>).
+
+<P/>
+
+<Example><![CDATA[
+gap> expls:= AllSingerAlgebraInfos( "n", 5,                                 
+>                r -> r.LL = Int( r.n * ( r.q-1 ) / r.m ) + 1, false );;
+gap> Length( expls );
+13
+gap> expls[1];
+rec( LL := 7, d := [ 43, 408 ], dec := 0, diff := 1, e := 407592814, 
+  isom := [ 1353, 223 ], m := 148, n := 5, q := 223, 
+  vprime := [ 1, 261, 375, 395, 260, 61, 1 ], z := 1353 )
+]]></Example>
+
+<P/>
+
+From now on, we fix <M>n = 4</M>.
+The upper bound is attained for all relevant entries in the database.
+
+<P/>
+
+<Example><![CDATA[
+gap> OneSingerAlgebraInfo( "n", 4,
+>        r -> r.LL = Int( r.n * ( r.q-1 ) / r.m ) + 1, false );
+fail
+]]></Example>
+
+<P/>
+
+We comute the Loewy lengths of the algebras <M>A[q,4,z]</M>,
+for <M>2 \leq q \leq 40</M> and for all divisors <M>z</M> of
+<M>q^4 - 1</M>,
+and compare them with the upper bound.
+
+<P/>
+
+<Example><![CDATA[
+gap> n:= 4;;
+gap> for q in [ 2 .. 40 ] do
+>      for z in DivisorsInt( q^n-1 ) do
+>        if z > SingerAlg.MaxZ then
+>          A:= SingerAlgebra( q, n, z );
+>          m:= MinimalDegreeOfSingerAlgebra( A );
+>          if LoewyLength( A ) <> Int( n * (q-1) / m ) + 1 then
+>            Print( "found an example\n" );
+>          fi;
+>        fi;
+>      od;
+>    od;
+]]></Example>
+
+The above computations should need less than a minute,
+provided that the &Julia; code can be used;
+much more time is needed if only &GAP; can be used.
+<Cite Key="BHHK2" Where="Section 1"/> states that the bound is always attained
+for <M>q \leq 100</M>;
+the computations for that need several hours (using &Julia;).
+
+<P/>
+
+In some of the examples, such as for <M>(q, e) = (29, 48)</M>,
+the computation of <M>m(q,e)</M> without calling
+<Ref Func="LoewyStructureInfoJulia" Label="for parameters"/>
+is more expensive than calling this function directly
+and then reading off the Loewy length (and <M>m(q,e)</M>).
+
+<!--
+gap> A:= SingerAlgebra( 29, 14735 );
+A[29,4,14735]
+gap> MinimalDegreeOfSingerAlgebra( A );
+8
+gap> time;
+1385
+gap> LoewyStructureInfoJulia( A );; time;
+992
+gap> A:= SingerAlgebra( 29, 14735 );
+A[29,4,14735]
+gap> LoewyStructureInfoJulia( A );; time;
+555
+gap> A:= SingerAlgebra( 29, 14735 );     
+A[29,4,14735]
+gap> LoewyStructureInfoJulia( A );; time;
+547
+-->
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+</Chapter>
+

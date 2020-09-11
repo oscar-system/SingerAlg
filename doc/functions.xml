@@ -1,0 +1,142 @@
+
+<!-- %W  functions.xml   GAP 4 package SingerAlg            Thomas Breuer -->
+<!-- %Y  Copyright 2019, Lehrstuhl D für Mathematik, RWTH Aachen, Germany -->
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Chapter Label="chap:functions">
+<Heading>Functions for Singer algebras</Heading>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:functions">
+<Heading>Singer Algebras as Algebraic Structures</Heading>
+
+<#Include Label="SingerAlgebra">
+<#Include Label="IsSingerAlgebra">
+<#Include Label="ParametersOfSingerAlgebra">
+<#Include Label="DimensionsLoewyFactors">
+<#Include Label="LoewyVectorAbbreviated">
+<#Include Label="LoewyLength">
+<#Include Label="SufficientCriterionForLoewyBoundAttained">
+<#Include Label="MinimalDegreeOfSingerAlgebra">
+<#Include Label="RadicalSeriesOfAlgebra">
+<#Include Label="SocleSeriesOfAlgebra">
+<#Include Label="LoewyStructureInfo">
+<#Include Label="CoefficientsQadicReversed">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:visualization">
+<Heading>Visualization of Singer Algebras</Heading>
+
+The following functions can be used to show the canonical basis
+of a Singer algebra in a two-dimensional array,
+where the rows correspond to Loewy layers.
+
+<#Include Label="DisplaySingerMonomials">
+<#Include Label="BrowseSingerMonomials">
+<#Include Label="DisplayFunction">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:combinatorial_structures">
+<Heading>Singer Algebras as Combinatorial Structures</Heading>
+
+Many interesting subalgebras and subspaces <M>U</M>, say,
+of a Singer algebra <M>A = A[q,z]</M> or <M>A = A[q,z]_p</M>
+have vector space bases that are subsets of the canonical basis
+<M>B(A)</M>,
+that is, <M>U</M> is spanned by the set <M>U \cap B(A)</M>.
+We call these subspaces <E>combinatorial</E>,
+and write <M>B(U) = U \cap B(A)</M>,
+the canonical basis of <M>U</M>.
+The examples of combinatorial subspaces
+for which implementations are provided are listed below.
+
+<P/>
+
+Each of the &GAP; functions in question returns the set of indices <M>i</M>
+such that the basis vectors <M>B(A[q,z])_i</M> are members of
+<M>B(U)</M>.
+The idea is that this set can be computed combinatorially,
+without performing computations with elements of the algebra <M>A</M>,
+and that for example the product space of two combinatorial subspaces
+is again combinatorial.
+The availability of the attribute
+<Ref Attr="GeneratingSubsetOfCanonicalBasisOfSingerAlgebra"/>
+in a subspace <M>U</M> marks <M>U</M> as combinatorial,
+and the attribute value is the set of indices of <M>B(U)</M>.
+
+<P/>
+
+<#Include Label="GeneratingSubsetOfCanonicalBasisOfSingerAlgebra",">
+<#Include Label="SingerAlg.MultTable">
+<#Include Label="SingerAlg.BasisOfSum">
+<#Include Label="SingerAlg.BasisOfProductSpace">
+<#Include Label="SingerAlg.BasisOfIdeal">
+<#Include Label="SingerAlg.BasisOfAnnihilator">
+<#Include Label="SingerAlg.BasesOfRadicalSeries">
+<#Include Label="SingerAlg.BasesOfSocleSeries">
+<#Include Label="SingerAlg.BasisOfPowers">
+<#Include Label="SingerAlg.BasisOfPMRoots">
+<#Include Label="SingerAlg.BasisOfPC">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:permiso_functions">
+<Heading>Permutation Isomorphism of Singer Algebras</Heading>
+
+Proving that two given Singer algebras are isomorphic is in general hard.
+An easier question is whether an algebra isomorphism exists that maps the
+canonical basis of the first to the canonical basis of the second.
+(And fortunately this situation occurs in quite a few cases,
+see <Ref Subsect="subsect:permiso"/>.)
+
+<P/>
+
+The following function can be used to check for such permutation isomorphisms.
+
+<P/>
+
+<#Include Label="SingerAlg.IsInducedAlgebraIsomorphism">
+<#Include Label="SingerAlg.ProposedPermutationIsomorphism">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:invariants">
+<Heading>Invariants of Singer Algebras</Heading>
+
+The following functions can be used to prove the nonisomorphism of given
+Singer algebras via invariants.
+
+<#Include Label="ConsiderInvariantsByParameters">
+<#Include Label="SingerAlg.InfoFromInvariantString">
+<#Include Label="SingerAlg.NumberOfProductsInSubspace">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<Section Label="sect:misc">
+<Heading>Miscellaneous variables related to Singer Algebras</Heading>
+
+<#Include Label="SingerAlg">
+<#Include Label="OrderModExt">
+<#Include Label="SingerAlg.ContentsOfDataFile">
+
+</Section>
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+</Chapter>
+

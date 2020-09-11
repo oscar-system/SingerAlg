@@ -1,0 +1,13 @@
+doc/chap*.html
+doc/chap*.txt
+doc/chooser.html
+doc/main.*
+!doc/main.xml
+doc/manual.*
+doc/manualbib.xml.bib
+doc/*.css
+doc/*.js
+tst/docxpl2.tst
+tst/docxpl2.tst~
+tst/docxpl.tst
+tst/docxpl.tst~

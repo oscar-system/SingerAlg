@@ -1,0 +1,140 @@
+<?xmlversion="1.0" encoding="UTF-8"?>
+<!DOCTYPE file SYSTEM "bibxmlext.dtd">
+
+<file>
+
+<entry id="Julia"><article>
+\bibitem{Julia}
+  <author>
+    <name><first>J.</first><last>Bezanson</last></name>
+    <name><first>A.</first><last>Edelman</last></name>
+    <name><first>S.</first><last>Karpinski</last></name>
+    <name><first>V. B.</first><last>Shah</last></name>
+  </author>
+  <title>Julia: A Fresh Approach to Numerical Computing</title>
+  <journal>SIAM Review</journal>
+  <year>2017</year>
+  <volume>59</volume>
+  <pages>65&ndash;98</pages>
+</article></entry>
+
+<!-- The proposal for the following entry was found at
+     http://www.rfc-editor.org/info/rfc7159 -->
+<entry id="JSON"><misc>
+  <key>JSON</key>
+  <editor>
+    <name><first>T.</first><last>Bray</last></name>
+  </editor>
+  <title>The JavaScript Object Notation (JSON) Data Interchange Format</title>
+  <howpublished><URL>http://www.rfc-editor.org/info/rfc7159</URL></howpublished>
+  <month>Mar</month>
+  <year>2014</year>
+  <other type="doi">10.17487/RFC7159</other>
+</misc></entry>
+
+<entry id="BHHK1"><article>
+  <author>
+    <name><first>Thomas</first><last>Breuer</last></name>
+    <name><first>László</first><last>Héthelyi</last></name>
+    <name><first>Erzsébet</first><last>Horváth</last></name>
+    <name><first>Burkhard</first><last>Külshammer</last></name>
+  </author>
+  <title>The <C>L</C>oewy Structure of Certain Fixpoint Algebras, Part <C>I</C></title>
+  <journal>J. Algebra</journal>
+  <year>2020</year>
+  <volume>558</volume>
+  <pages>199&ndash;220</pages>
+  <issn>0021-8693</issn>
+  <other type="fjournal">Journal of Algebra</other>
+  <other type="doi">https://doi.org/10.1016/j.jalgebra.2019.05.004</other>
+</article></entry>
+
+<entry id="BHHK2"><misc>
+  <author>
+    <name><first>Thomas</first><last>Breuer</last></name>
+    <name><first>László</first><last>Héthelyi</last></name>
+    <name><first>Erzsébet</first><last>Horváth</last></name>
+    <name><first>Burkhard</first><last>Külshammer</last></name>
+  </author>
+  <title>The <C>L</C>oewy Structure of Certain Fixpoint Algebras, Part <C>II</C></title>
+  <howpublished><URL>http://arxiv.org/abs/1912.03065</URL></howpublished>
+</misc></entry>
+
+<entry id="JuliaInterface"><misc>
+  <author>
+    <name><first>Thomas</first><last>Breuer</last></name>
+    <name><first>Sebastian</first><last>Gutsche</last></name>
+    <name><first>Max</first><last>Horn</last></name>
+  </author>
+  <title><C>JuliaInterface</C>, <C>GAP</C> interface to <C>J</C>ulia,
+         <C>V</C>ersion 0.4.3</title>
+  <howpublished><URL>https://github.com/oscar-system/GAP.jl</URL></howpublished>
+  <month>Aug</month>
+  <year>2020</year>
+  <note>GAP package</note>
+</misc></entry>
+
+<entry id="Browse"><misc>
+  <author>
+    <name><first>Thomas</first><last>Breuer</last></name>
+    <name><first>Frank</first><last>Lübeck</last></name>
+  </author>
+  <title><C>Browse</C>, browsing applications and ncurses interface,
+         <C>V</C>ersion 1.8.11</title>
+  <howpublished><URL>http://www.math.rwth-aachen.de/~Browse</URL></howpublished>
+  <month>Aug</month>
+  <year>2020</year>
+  <note>GAP package</note>
+  <keywords>Browse; ncurses</keywords>
+</misc></entry>
+
+<entry id="FactInt"><misc>
+  <author>
+    <name><first>Stefan</first><last>Kohl</last></name>
+  </author>
+  <title><C>FactInt</C>, Advanced Methods for Factoring Integers,
+         <C>V</C>ersion 1.6.3</title>
+  <howpublished><URL>https://gap-packages.github.io/FactInt</URL></howpublished>
+  <month>Nov</month>
+  <year>2019</year>
+  <note>Refereed GAP package</note>
+  <keywords>Integer factorization; ECM; Elliptic Curves Method; MPQS; Multiple Polynomial Quadratic Sieve; CFRAC; Continued Fraction Algorithm; Pollard's p-1; Williams' p+1; Cunningham Tables; Richard P. Brent's Factor Tables</keywords>
+</misc></entry>
+
+<entry id="GAPDoc"><misc>
+  <author>
+    <name><first>Frank</first><last>Lübeck</last></name>
+    <name><first>Max</first><last>Neunhöffer</last></name>
+  </author>
+  <title><C>GAPDoc</C>, A Meta Package for <C>GAP</C> Documentation,
+         <C>V</C>ersion 1.6.3</title>
+  <howpublished><URL>http://www.math.rwth-aachen.de/~Frank.Luebeck/GAPDoc</URL></howpublished>
+  <month>Jul</month>
+  <year>2019</year>
+  <note>Refereed GAP package</note>
+  <keywords>GAP documentation; help system; XML; pdf; hyperlink; unicode; BibTeX; BibXMLext</keywords>
+</misc></entry>
+
+<entry id="OEIS"><misc>
+  <author>
+    <name><first>N. J. A.</first><last>Sloane</last></name>
+  </author>
+  <title>The On-Line Encyclopedia of Integer Sequences</title>
+  <howpublished><URL>https://oeis.org</URL></howpublished>
+</misc></entry>
+
+<entry id="GRAPE"><misc>
+  <author>
+    <name><first>Leonard H.</first><last>Soicher</last></name>
+  </author>
+  <title><C>GRAPE</C>, GRaph Algorithms using PErmutation groups,
+         <C>V</C>ersion 4.8.3</title>
+  <howpublished><URL>https://gap-packages.github.io/grape</URL></howpublished>
+  <month>Dec</month>
+  <year>2019</year>
+  <note>Refereed GAP package</note>
+  <keywords>graph; geometry; design</keywords>
+</misc></entry>
+
+</file>
+
