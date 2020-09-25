@@ -98,6 +98,8 @@ function MinimalDegreeCheap(q::Int, n::Int, e::T) where {T<:Integer}
       return 1
     end
 
+    @assert powermod( q, n, e ) == 1 && OrderMod( q, e, n ) == n "$n is not the mult. order of $q mod $e"
+
     if q == 1
       # Example I.6.1.
       return Int(e)
@@ -174,6 +176,8 @@ such that `e` divides the sum of these powers.
 The argument `n` must be `OrderMod( q, e )`.
 """
 function MinimalDegreeHard(q::Int, n::Int, e::T) where {T<:Integer}
+    @assert powermod( q, n, e ) == 1 && OrderMod( q, e, n ) == n "$n is not the mult. order of $q mod $e"
+
     # If A[q,n,z] has small dimension and e is not very small
     # then enumerate its basis.
     # (For small e, we known that the m values are small,

@@ -20,16 +20,55 @@ fi;
 ##
 #F  GrayCodeSwitchIndexIterator( <n> )
 ##
-##  Return an iterator for the sequence of those bit positions in an
-##  <A>n</A>-bit Gray code where the next flip has to take place.
+##  <#GAPDoc Label="GrayCodeSwitchIndexIterator">
+##  <ManSection>
+##  <Func Name="GrayCodeSwitchIndexIterator" Arg='n'/>
+##
+##  <Returns>
+##  an iterator (see <Ref Sect="Iterators" BookName="ref"/>).
+##  </Returns>
+##  <Description>
+##  For a nonnegative integer <A>n</A>, this function returns an iterator
+##  for the sequence of the positions of those bits in an
+##  <A>n</A>-bit Gray code where the next flip takes place.
 ##  <P/>
-##  For large enough <A>n</A>, the first values are
-##  <M>1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1, 5, 1, 2, 1, \ldots</M>.
-##  (This is [series A001511](https://oeis.org/A001511) of the
-##  [OEIS](https://oeis.org) <Cite Key="OEIS">.)
+##  For <A>n</A> tending to infinity, this is <URL>
+##  <LinkText>series <C>A001511</C> of the OEIS <Cite Key="OEIS"/></LinkText>
+##  <Link>https://oeis.org/A001511</Link></URL>.
+##  <P/>
+##  <Example><![CDATA[
+##  gap> l:= [];;
+##  gap> for i in GrayCodeSwitchIndexIterator( 4 ) do
+##  >      Add( l, i );
+##  >    od;
+##  gap> l;
+##  [ 1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 3, 1, 2, 1 ]
+##  ]]></Example>
+##  <P/>
+##  The idea of a Gray code is to run over the vectors of a
+##  <M>GF(2)</M>-vector space in such a way that subsequent vectors differ
+##  in exactly one position.
+##  <P/>
+##  <Example><![CDATA[
+##  gap> F:= GF(2);;  one:= One( F );;  V:= F^4;;
+##  gap> v:= ShallowCopy( Zero( V ) );;  l:= [ ShallowCopy( v ) ];;
+##  gap> for i in GrayCodeSwitchIndexIterator( 4 ) do
+##  >      v[i]:= v[i] + one;
+##  >      Add( l, ShallowCopy( v ) );
+##  >    od;
+##  gap> Set( l ) = Elements( V );
+##  true
+##  ]]></Example>
+##  </Description>
+##  </ManSection>
+##  <#/GAPDoc>
 ##
 BindGlobal( "GrayCodeSwitchIndexIterator", function( n )
     local nn;
+
+    if not ( IsInt( n ) and n >= 0 ) then
+      Error( "<n> must be a nonnegative integer" );
+    fi;
 
     nn:= QuoInt( n+1, 2 );
 
@@ -434,8 +473,9 @@ SingerAlg.NumberOfProductsInSubspace:= function( data, J, I, bound... )
 BindGlobal( "ConsiderInvariantsByParameters", function( z, qs, bounds... )
     local maxnumber, RCdim, RCnum, use_gap, datalist, inv_funs, length_fun,
           transpose, all_empty, j_list, empty, all_j, n, subspaces, labels,
-          badlabels, rows, DealWithNewEntry, usedprimes, found, i, action,
-          newlabel, split, p, m, l, j, min, inv, set, failure;
+          badlabels, rows, DealWithNewEntry, RunStep1, usedprimes, found, i,
+          action, newlabel, split, p, m, l, j, min, inv, set, res, failure,
+          notallchecked, pi, addcomment;
 
     if Length( bounds ) <> 1 or not IsRecord( bounds[1] ) then
       bounds:= rec();
@@ -565,6 +605,7 @@ Print( "#I  unexpected decision by invariant ", label, "\n" );
       return false;
     end;
 
+    RunStep1:= function()
     # We will consider reductions of Singer algebras modulo several primes,
     # and we have to take care that each invariant involves at most
     # one such reduction.
@@ -738,6 +779,21 @@ Print( "#I  unexpected decision by invariant ", label, "\n" );
       od;
     until not found;
 
+    return rec( success:= false );
+    end;
+
+    # Step 1: Collect and compare combinatorial invariants.
+    res:= RunStep1();
+    if res.success = true then
+      return res;
+    elif IsBound( res.comment ) then
+      # Not all possible invariants were checked.
+      notallchecked:= ", not all invariants checked";
+    else
+      notallchecked:= "";
+    fi;
+
+    # Step 2: Apply the root count where it is feasible.
     if 0 < RCdim then
       # Try root counts for pairs of at most 'RCnum' invariants.
       min:= Minimum( Length( labels ), RCnum );
@@ -747,23 +803,45 @@ Print( "#I  unexpected decision by invariant ", label, "\n" );
       else
         failure:= JuliaEvalString( "nothing" );
       fi;
+
+      # Sort the invariants by increasing dimension.
+      pi:= SortingPerm( List( subspaces, x -> length_fun( x[1] ) ) );
+      labels:= Permuted( labels, pi );
+      subspaces:= Permuted( subspaces, pi );
+      addcomment:= "";
+
       for i in [ 1 .. min ] do
         for j in [ 1 .. min ] do
+
           m:= m + 1;
-          newlabel:= Concatenation( "RC(", labels[i], ",", labels[j], ")" );
-          inv:= List( [ 1 .. n ],
-                      k -> inv_funs.NumberOfProductsInSubspace( datalist[k],
-                               subspaces[i][k], subspaces[j][k], RCdim ) );
-          if not failure in inv then
-            set:= Set( inv );
-            if Length( set ) <> 1 then
-              return rec(
-                  success:= true,
-                  lists:= List( set, val -> qs{ Positions( inv, val ) } ),
-                  label:= newlabel,
-                  comment:= Concatenation( "total ",
-                                String( Length( labels ) ), " invariants ",
-                                "plus ", String( m ), " RC pairs checked" ) );
+          if Length( Intersection(
+               Filtered( usedprimes,
+                         q -> PositionSublist( labels[i], q ) <> fail ),
+               Filtered( usedprimes,
+                         q -> PositionSublist( labels[j], q ) <> fail ) ) ) <= 1 then
+            # The two invariants in question do not refer to reductions
+            # modulo different primes.
+            newlabel:= Concatenation( "RC(", labels[i], ",", labels[j], ")" );
+            inv:= List( [ 1 .. n ],
+                        k -> inv_funs.NumberOfProductsInSubspace( datalist[k],
+                                 subspaces[i][k], subspaces[j][k], RCdim ) );
+            if not failure in inv then
+              set:= Set( inv );
+              if Length( set ) <> 1 then
+                return rec(
+                    success:= true,
+                    lists:= List( set, val -> qs{ Positions( inv, val ) } ),
+                    label:= newlabel,
+                    comment:= Concatenation( "total ",
+                                  String( Length( labels ) ), " invariants ",
+                                  "plus ", String( m ), " RC pairs checked" ) );
+              fi;
+            else
+if not ForAll( inv, x -> x = failure ) then
+  Print( "#E  case where some RC outputs are fail but others are not:\n",
+         "#E  ", [ z, qs, newlabel ], "\n" );
+fi;
+              addcomment:= ", some RC comp. return fail";
             fi;
           fi;
         od;
@@ -773,14 +851,16 @@ Print( "#I  unexpected decision by invariant ", label, "\n" );
                   labels:= labels,
                   comment:= Concatenation( "no decision, checked ",
                                 String( Length( labels ) ), " invariants ",
-                                "plus ", String( m ), " RC pairs" ) );
+                                "plus ", String( m ), " RC pairs",
+                                addcomment, notallchecked ) );
     fi;
 
     # We did not find any distinguishing invariant.
     return rec( success:= false,
                 labels:= labels,
                 comment:= Concatenation( "no decision, checked ",
-                              String( Length( labels ) ), " invariants" ) );
+                              String( Length( labels ) ), " invariants",
+                              notallchecked ) );
     end );
 
 

@@ -134,8 +134,8 @@ function NumberOfProductsInSubspace(data::Dict, J::Vector{Int}, I::Vector{Int}, 
 
     l = length(factset)
     if l == 0
-      # all products lie in U
-      return [2*size(V, 1), 1]
+      # all products lie in V
+      return [2*size(I, 1), 1]
     elseif l > bound
       # give up
       return

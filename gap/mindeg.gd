@@ -129,6 +129,9 @@ fi;
 ##
 ##  These functions are used by 'MinimalDegreeOfSingerAlgebraGAP'.
 ##  <n> must be the multiplicative order of <q> modulo <e>.
+##  (If the assertion level is at least 2 then this assumption is checked,
+##  but normally this level is 1;
+##  note that 'START_TEST' increases the assertion level to 2 if necessary.)
 ##
 DeclareGlobalFunction( "MinimalDegreeCheapGAP" );
 

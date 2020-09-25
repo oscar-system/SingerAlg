@@ -132,6 +132,7 @@ Singer algebras via invariants.
 <#Include Label="SingerAlg">
 <#Include Label="OrderModExt">
 <#Include Label="SingerAlg.ContentsOfDataFile">
+<#Include Label="GrayCodeSwitchIndexIterator">
 
 </Section>
 

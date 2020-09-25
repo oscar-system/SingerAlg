@@ -112,6 +112,8 @@ InstallMethod( MinimalDegreeOfSingerAlgebraGAP,
 InstallGlobalFunction( MinimalDegreeCheapGAP, function( q, n, e )
     local e1, e2, m;
 
+    Assert( 2, PowerMod( q, n, e ) = 1 and OrderModExt( q, e, n ) = n );
+
     if e = 1 then
       return 1;
     fi;
@@ -279,6 +281,8 @@ BindGlobal( "VectorIterator", function( m, n, s )
 ##
 InstallGlobalFunction( MinimalDegreeHardGAP, function( q, n, e )
     local z, e1, m, powers, a, v;
+
+    Assert( 2, PowerMod( q, n, e ) = 1 and OrderModExt( q, e, n ) = n );
 
     # If A[q,n,z] has small dimension and e is not very small
     # then enumerate its basis.
