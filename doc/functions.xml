@@ -121,6 +121,7 @@ Singer algebras via invariants.
 <#Include Label="ConsiderInvariantsByParameters">
 <#Include Label="SingerAlg.InfoFromInvariantString">
 <#Include Label="SingerAlg.NumberOfProductsInSubspace">
+<#Include Label="SingerAlg.LL4QuoDerDim">
 
 </Section>
 

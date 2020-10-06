@@ -400,7 +400,7 @@ gap> ShowDistributionStatus();
 ]]></Example>
 
 <!-- The number of invariants to be checked can be large.
-     For example, 1189 invariants are checked until the cases
+     For example, 1189 invariants are checked until the case
      z = 3100, q in [ 29, 89 ] is decided. -->
 
 </Subsection>

@@ -202,8 +202,8 @@ DeclareOperation( "LoewyStructureInfoGAP",
 
 if IsPackageMarkedForLoading( "JuliaInterface", "" ) then
   # We convert the Julia dictionary into a GAP record,
-  # thus we need an additional attribute.
-  DeclareAttribute( "LoewyStructureInfo", IsSingerAlgebra );
+  # thus we need an additional attribute (mutable, see above).
+  DeclareAttribute( "LoewyStructureInfo", IsSingerAlgebra, "mutable" );
 
   DeclareOperation( "LoewyStructureInfo", [ IsPosInt, IsPosInt ] );
 
