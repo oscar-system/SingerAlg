@@ -112,11 +112,11 @@ InstallMethod( MinimalDegreeOfSingerAlgebraGAP,
 InstallGlobalFunction( MinimalDegreeCheapGAP, function( q, n, e )
     local e1, e2, m;
 
-    Assert( 2, PowerMod( q, n, e ) = 1 and OrderModExt( q, e, n ) = n );
-
     if e = 1 then
       return 1;
     fi;
+
+    Assert( 2, PowerMod( q, n, e ) = 1 and OrderModExt( q, e, n ) = n );
 
     if q = 1 then
       # Example I.6.1.

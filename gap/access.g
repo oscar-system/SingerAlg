@@ -532,5 +532,40 @@ SingerAlg.ComputedIdInfoForSingerAlgebras:= function()
 
 #############################################################################
 ##
+#F  SingerAlg.ComputedOpenCases()
+##
+##  This function returns a string to be used as the second entry in
+##  the file 'data/opencases.json'.
+##  It assumes that the distribution of parameter pairs to isomorphism
+##  classes as described in the package manual is stored in the list
+##  'KnownDistribution';
+##  for that, one can run 'Test' on the package file 'tst/docxpl.tst'.
+##
+SingerAlg.ComputedOpenCases:= function()
+    local dist, list, z, filt;
+
+    if not IsBound( KnownDistribution ) then
+      Error( "It is assumed that the (partial) classification ",
+             "of isomorphism classes from 'docxpl.tst' gets computed ",
+             "before this function gets called." );
+    fi;
+
+    dist:= ValueGlobal( "KnownDistribution" );
+    list:= [];
+    for z in [ 1 .. Length( dist ) ] do
+      filt:= Filtered( dist[z], l -> Length( l ) > 1 );
+      if Length( filt ) > 0 then
+        Add( list, [ z, filt ] );
+      fi;
+    od;
+
+    return JoinStringsWithSeparator(
+               List( list, l -> ReplacedString( String( l ), " ", "" ) ),
+               ",\n" );
+    end;
+
+
+#############################################################################
+##
 #E
 

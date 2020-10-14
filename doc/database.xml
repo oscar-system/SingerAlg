@@ -475,22 +475,29 @@ gap> for l in splits[2] do
 >      CallFuncList( applysplit, l );
 >    od;
 gap> ShowDistributionStatus();
-#I  min. no. of isom. types: 479543
+#I  min. no. of isom. types: 480519
 #I  max. no. of isom. types: 481744
-#I  no. of nontriv. classes: 1905
-#I  no. of entries in these classes: 5228
-#I  no. of dimensions with open questions: 783
+#I  no. of nontriv. classes: 1116
+#I  no. of entries in these classes: 2547
+#I  no. of dimensions with open questions: 548
 ]]></Example>
 
 <P/>
 
-Finally, we check whether the currently stored information about the
-distribution to isomorphism types (in the file <F>data/id.json</F> of the
-package) coincides with the above data.
+Finally, we check whether the currently stored information
+about the open cases (in the file <F>data/opencases.json</F> of the package)
+and about the distribution to isomorphism types (in the file
+<F>data/id.json</F>) coincides with the above data.
 
 <P/>
 
 <Example><![CDATA[
+gap> str:= Concatenation( "[",
+>              SingerAlg.ComputedOpenCases(), "]" );;
+gap> if EvalString( str ) <>
+>       SingerAlg.ContentsOfDataFile( "opencases.json" )[2] then
+>      Print( "#E  'data/opencases.json' is not up to date." );
+>    fi;
 gap> str:= Concatenation( "[",
 >              SingerAlg.ComputedIdInfoForSingerAlgebras(), "]" );;
 gap> if EvalString( str ) <> SingerAlg.IdData[2] then

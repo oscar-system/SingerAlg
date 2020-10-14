@@ -321,6 +321,7 @@ SingerAlg.ProposedPermutationIsomorphism:= function( data1, data2 )
        ( not ValueGlobal( "GRAPE_NAUTY" ) and
          ValueGlobal( "GRAPE_BLISS_EXE" ) = fail ) then
       # Grape or its standalones are not available.
+      Info( InfoSingerAlg, 1, "no Grape standalone available" );
       return fail;
     fi;
 
