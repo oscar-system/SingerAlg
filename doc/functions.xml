@@ -101,7 +101,7 @@ see <Ref Subsect="subsect:permiso"/>.)
 
 <P/>
 
-The following function can be used to check for such permutation isomorphisms.
+The following functions can be used to check for such permutation isomorphisms.
 
 <P/>
 
@@ -134,6 +134,7 @@ Singer algebras via invariants.
 <#Include Label="OrderModExt">
 <#Include Label="SingerAlg.ContentsOfDataFile">
 <#Include Label="GrayCodeSwitchIndexIterator">
+<#Include Label="SingerAlg.RightDerivationsDimension">
 
 </Section>
 

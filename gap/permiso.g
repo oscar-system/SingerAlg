@@ -32,7 +32,7 @@ SingerAlg.RefinePartitions:= function( pi1, set1, pi2, set2 )
       pi2[i]:= result2[i];
     od;
     return true;
-end;;
+end;
 
 
 SingerAlg.OverflowCount:= function( data )

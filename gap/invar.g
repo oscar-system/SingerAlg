@@ -304,12 +304,182 @@ SingerAlg.NumberOfProductsInSubspace:= function( data, J, I, bound... )
     od;
 
     return [ e, count ];
-    end;
+end;
 
 
 #############################################################################
 ##
-#F  SingerAlg.LL4QuoDerDim:= function( data[, maxdim] )
+#F  SingerAlg.ReducedMultTable( <T>, <subset>, <tozero> )
+##
+##  Let <A>T</A> be the multiplication table of a Singer algebra <M>A</M>,
+##  as returned by <Ref Func="SingerAlg.MultTable"/>,
+##  of dimension <M>n</M>, say.
+#T more general: an algebra that possesses a basis such that the product
+#T of two basis elements is either zero or another basis element!
+##  Let <A>subset</A> be a sublist of <M>[ 1 .. n ]</M>,
+##  and let <A>tozero</A> be a sublist of <A>subset</A> such that
+##  the subspaces of <M>A</M> that are spanned by the subsets of the
+##  canonical basis given by <A>subset</A> and <A>tozero</A> are
+##  a subalgebra <M>S</M> and an ideal <M>I</M>, respectively, in <M>A</M>.
+##  <P/>
+##  <Ref Func="SingerAlg.ReducedMultTable"/> returns a matrix
+##  that describes the multiplication in the factor <M>S / I</M>.
+##
+SingerAlg.ReducedMultTable:= function( T, subset, tozero )
+    local diff, lookup, redT, n, i, posi, j, Tij, posj, posk;
+
+    if not IsSubset( subset, tozero ) then
+      Error( "wrong factor!" );
+    fi;
+
+    diff:= Difference( subset, tozero );
+    lookup:= [];
+    for i in [ 1 .. Length( diff ) ] do
+      lookup[ diff[i] ]:= i;
+    od;
+    for i in tozero do
+      lookup[i]:= fail;
+    od;
+
+    redT:= List( diff, x -> ListWithIdenticalEntries( Length( diff ), 0 ) );
+    tozero:= Union( tozero, [ 0 ] );
+    n:= Length( T );
+    for i in diff do
+      posi:= lookup[i];
+      for j in diff do
+        Tij:= T[i,j];
+        if Tij <> 0 then
+          posj:= lookup[j];
+          posk:= lookup[ Tij ];
+          if posk = fail then
+            if not ( Tij in subset ) then
+              Error( "<subset> does not describe a subalgebra" );
+            fi;
+          else
+            redT[ posi, posj ]:= posk;
+          fi;
+        fi;
+      od;
+    od;
+
+    return redT;
+end;
+
+
+#############################################################################
+##
+#F  SingerAlg.RightDerivationsDimension( <T> )
+##
+##  <#GAPDoc Label="SingerAlg.RightDerivationsDimension">
+##  <ManSection>
+##  <Func Name="SingerAlg.RightDerivationsDimension" Arg='T'/>
+##
+##  <Returns>
+##  a positive integer.
+##  </Returns>
+##  <Description>
+##  Let <A>T</A> be a symmetric square matrix with <M>n</M> rows and columns,
+##  whose entries are integers in <M>[ 0 .. n ]</M>.
+##  We interpret <A>T</A> as the multiplication table of a commutative
+##  algebra <M>A</M> over the field with two elements, as follows.
+##  Let <M>B = [ b_1, b_2, \ldots, b_n ]</M> be a basis of <M>A</M>.
+##  If <A>T</A><M>[i,j] = k</M> holds then the product <M>b_i b_j</M> is
+##  zero if <M>k = 0</M>, and <M>b_i b_j = b_k</M> otherwise.
+##  <P/>
+##  <Ref Func="SingerAlg.RightDerivationsDimension"/> returns the dimension
+##  of (right) derivations of <M>A</M>.
+##  <P/>
+##  Let the structure constants of <M>A</M> w.r.t. the basis <M>B</M> be
+##  <M>c_{{i,j,k}}</M>, that is,
+##  we have <M>b_i b_j = \sum_{{k=1}}^n c_{{i,j,k}} b_k</M>.
+##  For each pair <M>(i, j)</M>, we have thus <M>c_{{i,j,k}} = 1</M>
+##  if <A>T</A><M>[i,j] = k (\not= 0)</M> holds,
+##  and <M>c_{{i,j,k}} = 0</M> otherwise.
+##  A linear map <M>D\colon b_i \mapsto \sum_{{j=1}}^n d_{{i,j}} b_j</M>
+##  is a right derivation if the equation
+##  <M>\sum_{{k=1}}^n ( c_{{i,j,k}} d_{{k,m}} - c_{{k,j,m}} d_{{i,k}}
+##  - c_{{i,k,m}} d_{{j,k}} ) = 0</M>
+##  is satisfied for all <M>1 \leq i, j, m \leq n</M>.
+##  Thus the right derivations of <M>A</M> are given by the solution space of
+##  this linear equation system, in terms of the <M>n^2</M> indeterminates
+##  <M>d_{{i,j}}, 1 \leq i, j \leq n</M>,
+##  and we can compute the dimension of this space by computing the rank of
+##  the matrix of the equation system.
+##  <P/>
+##  Since the algebra <M>A</M> is commutative,
+##  we have <M>c_{{i,j,k}} = c_{{j,i,k}}</M>,
+##  thus we need only the equations with <M>i \leq j</M>.
+##  <P/>
+##  <Example><![CDATA[
+##  gap> q:= 3;;  z:= 40;;  a:= SingerAlgebra( q, z, GF(2) );;
+##  gap> T:= SingerAlg.MultTable( LoewyStructureInfo( 3, 40 ) );;
+##  gap> SingerAlg.RightDerivationsDimension( T );
+##  118
+##  gap> Dimension( Derivations( CanonicalBasis( a ) ) );
+##  118
+##  ]]></Example>
+##  </Description>
+##  </ManSection>
+##  <#/GAPDoc>
+##
+SingerAlg.RightDerivationsDimension:= function( T )
+    local n, nn, A, v, one, heads, i, j, m, eqn, k, pos, h;
+
+    # The n^2 columns in the matrix of the equation system are indexed
+    # by the $d_{i,j}$; the $((i-1) n + j)$-th column belongs to $d_{i,j}$.
+    n:= Length( T );
+    nn:= n^2;
+    A:= [];
+    v:= ListWithIdenticalEntries( nn, 0*Z(2) );
+    ConvertToVectorRep( v, 2 );
+    one:= Z(2);
+
+    # 'heads[i] = 0' means that no row in 'A' has leading '1' at position 'i'.
+    # 'heads[i] = j > 0' means that 'A[j]' has leading '1' at position 'i'.
+    heads:= ListWithIdenticalEntries( nn, 0 );
+    for i in [ 1 .. n ] do
+      for j in [ i .. n ] do
+        for m in [ 1 .. n ] do
+          # Create a new row.
+          eqn:= ShallowCopy( v );
+          k:= T[i,j];
+          if k <> 0 then
+            eqn[ (k-1)*n+m ]:= eqn[ (k-1)*n+m ] + one;
+          fi;
+          for k in [ 1 .. n ] do
+            if T[k,j] = m then
+              eqn[ (i-1)*n+k ]:= eqn[ (i-1)*n+k ] - one;
+            fi;
+            if T[i,k] = m then
+              eqn[ (j-1)*n+k ]:= eqn[ (j-1)*n+k ] - one;
+            fi;
+          od;
+
+          # Reduce the new row with the known ones.
+          MakeImmutable( eqn );
+          pos:= PositionNonZero( eqn );
+          while pos <= nn do
+            h:= heads[ pos ];
+            if h = 0 then
+              # extend the matrix
+              Add( A, eqn );
+              heads[ pos ]:= Length( A );
+              break;
+            else
+              eqn:= eqn + A[h];
+              pos:= PositionNonZero( eqn, pos );
+            fi;
+          od;
+        od;
+      od;
+    od;
+    return nn - Length( A );
+end;
+
+
+#############################################################################
+##
+#F  SingerAlg.LL4QuoDerDim( data[, maxdim] )
 ##
 ##  <#GAPDoc Label="SingerAlg.LL4QuoDerDim">
 ##  <ManSection>
@@ -333,7 +503,8 @@ SingerAlg.NumberOfProductsInSubspace:= function( data, J, I, bound... )
 ##  <P/>
 ##  <Ref Func="SingerAlg.LL4QuoDerDim"/> tries to compute the
 ##  dimension of the algebra of derivations of the algebra
-##  <M>(J(A)^2 \oplus V(A)) / S_1(A)</M>.
+##  <M>(J(A)^2 \oplus V(A)) / S_1(A)</M>,
+##  using <Ref Func="SingerAlg.RightDerivationsDimension"/>.
 ##  If the return value is a positive integer then it is this dimension.
 ##  The return value <K>fail</K> means that either <M>A</M> has Loewy length
 ##  different from <M>4</M> or that the dimension of <M>V(A)</M> is larger
@@ -354,7 +525,7 @@ SingerAlg.NumberOfProductsInSubspace:= function( data, J, I, bound... )
 ##  <#/GAPDoc>
 ##
 SingerAlg.LL4QuoDerDim:= function( data, maxdim... )
-    local q, z, n, T, V, A, basis, radser, u;
+    local q, z, n, T, V, radser, u;
 
     if data.LL <> 4 then
       return fail;
@@ -375,18 +546,9 @@ SingerAlg.LL4QuoDerDim:= function( data, maxdim... )
     if Length( V ) > maxdim then
       return fail;
     fi;
-    A:= SingerAlgebra( q, z, GF(2) );;
-    basis:= CanonicalBasis( A );;
     radser:= SingerAlg.BasesOfRadicalSeries( data );
-    u:= SubalgebraNC( A, basis{ Union( V, radser[2] ) }, "basis" ) /
-            SubalgebraNC( A, basis{ [ z+1 ] }, "basis" );
-#T improve:
-#T - Create the multiplication table of the factor algebra directly.
-#T - Compute the matrix of the linear equation system describing the
-#T   derivations directly, and then just compute its rank.
-#T - Compute the matrix and its rank in Julia (using the true/false
-#T   arithmetic).
-    return Dimension( Derivations( Basis( u ) ) );
+    u:= SingerAlg.ReducedMultTable( T, Union( V, radser[2] ), [ n ] );
+    return SingerAlg.RightDerivationsDimension( u );
 end;
 
 
@@ -440,6 +602,11 @@ end;
 ##    If such a call is successful for two subspaces <M>U</M> and <M>V</M>
 ##    then the <C>label</C> component of the result has the form
 ##    <C>"RC(</C><M>U</M><C>,</C><M>V</M><C>)"</C>.
+##  </Item>
+##  <Item>
+##    If the component <C>LL4QuoDerMax</C> is bound then its value is taken
+##    as the <C>maxdim</C> argument of <Ref Func="SingerAlg.LL4QuoDerDim"/>,
+##    the default is <M>50</M>.
 ##  </Item>
 ##  </List>
 ##  <P/>
@@ -539,6 +706,10 @@ end;
 ##  rec( comment := "total 12 invariants checked", 
 ##    label := "Prod(Annihilator(Power(J^1,2,1)),Roots(0,2,1))", 
 ##    lists := [ [ 29 ], [ 35 ] ], success := true )
+##  gap> ConsiderInvariantsByParameters( 247, [ 37, 46 ] );
+##  rec( comment := "total 4 invariants plus LL4QuoDerDim checked", 
+##    label := "LL4QuoDerDim", lists := [ [ 46 ], [ 37 ] ], 
+##    success := true )
 ##  gap> ConsiderInvariantsByParameters( 171, [ 11, 68 ] );
 ##  rec( comment := "no decision, checked 11 invariants", 
 ##    labels := [ "J^1", "J^2", "J^3", "S_2", "Roots(0,2,1)", 
@@ -554,11 +725,11 @@ end;
 ##  <#/GAPDoc>
 ##
 BindGlobal( "ConsiderInvariantsByParameters", function( z, qs, bounds... )
-    local maxnumber, RCdim, RCnum, use_gap, datalist, inv_funs, length_fun,
-          transpose, all_empty, j_list, empty, all_j, n, subspaces, labels,
-          badlabels, rows, DealWithNewEntry, RunStep1, usedprimes, found, i,
-          action, newlabel, split, p, m, l, j, min, inv, set, res, failure,
-          notallchecked, pi, addcomment;
+    local maxnumber, RCdim, RCnum, use_gap, datalist, LL, inv_funs,
+          length_fun, transpose, all_empty, j_list, empty, failure, all_j, n,
+          subspaces, labels, badlabels, rows, DealWithNewEntry, RunStep1,
+          usedprimes, found, i, action, newlabel, split, p, m, l, j, min,
+          inv, set, res, notallchecked, maxdim, pi, addcomment;
 
     if Length( bounds ) <> 1 or not IsRecord( bounds[1] ) then
       bounds:= rec();
@@ -587,14 +758,17 @@ BindGlobal( "ConsiderInvariantsByParameters", function( z, qs, bounds... )
               or not IsBound( Julia );
     if use_gap then
       datalist:= List( qs, q -> LoewyStructureInfoGAP( q, z ) );
+      LL:= Set( datalist, r -> r.LL );
       inv_funs:= SingerAlg;
       length_fun:= Length;
       transpose:= TransposedMat;
       all_empty:= row -> ForAll( row, IsEmpty );
       j_list:= [ 2 .. z+1 ];
       empty:= [];
+      failure:= fail;
     else
       datalist:= List( qs, q -> LoewyStructureInfoJulia( q, z ) );
+      LL:= Set( datalist, r -> Julia.Base.get( r, JuliaSymbol( "LL" ), fail ) );
       inv_funs:= Julia.SingerAlg;
       length_fun:= Julia.length;
       transpose:= list -> TransposedMat( List( list,
@@ -602,6 +776,10 @@ BindGlobal( "ConsiderInvariantsByParameters", function( z, qs, bounds... )
       all_empty:= row -> ForAll( row, l -> length_fun( l ) = 0 );
       j_list:= GAPToJulia( [ 2 .. z+1 ] );
       empty:= JuliaEvalString( "Int[]" );
+      failure:= JuliaEvalString( "nothing" );
+    fi;
+    if Length( LL ) <> 1 then
+      Error( "q in <qs> belong to different Loewy lengths" );
     fi;
     all_j:= row -> ForAll( row, x -> x = j_list );
 
@@ -876,16 +1054,39 @@ Print( "#I  unexpected decision by invariant ", label, "\n" );
       notallchecked:= "";
     fi;
 
-    # Step 2: Apply the root count where it is feasible.
+    # Step 2: Call 'LL4QuoDerDim' if applicable.
+    if LL[1] = 4 then
+      if IsBound( bounds.LL4QuoDerMax ) then
+        maxdim:= bounds.LL4QuoDerMax;
+      else
+        maxdim:= 50;
+      fi;
+      inv:= List( datalist, r -> inv_funs.LL4QuoDerDim( r, maxdim ) );
+      if not failure in inv then
+        set:= Set( inv );
+        if Length( set ) <> 1 then
+          return rec(
+              success:= true,
+              lists:= List( set, val -> qs{ Positions( inv, val ) } ),
+              label:= "LL4QuoDerDim",
+              comment:= Concatenation( "total ",
+                            String( Length( labels ) ), " invariants ",
+                            "plus LL4QuoDerDim checked" ) );
+        fi;
+      else
+if not ForAll( inv, x -> x = failure ) then
+  Print( "#E  case where some LL4QuoDerDim outputs are fail ",
+         "but others are not:\n",
+         "#E  ", [ z, qs ], "\n" );
+fi;
+      fi;
+    fi;
+
+    # Step 3: Apply the root count where it is feasible.
     if 0 < RCdim then
       # Try root counts for pairs of at most 'RCnum' invariants.
       min:= Minimum( Length( labels ), RCnum );
       m:= 0;
-      if use_gap then
-        failure:= fail;
-      else
-        failure:= JuliaEvalString( "nothing" );
-      fi;
 
       # Sort the invariants by increasing dimension.
       pi:= SortingPerm( List( subspaces, x -> length_fun( x[1] ) ) );
@@ -1018,7 +1219,7 @@ SingerAlg.SyntaxTreeOfInvariant:= function( str )
     fi;
 
     return explode[1];
-    end;
+end;
 
 
 #############################################################################
@@ -1058,7 +1259,8 @@ SingerAlg.SyntaxTreeOfInvariant:= function( str )
 ##  <Mark><C>LL4QuoDerDim</C>:</Mark>
 ##  <Item>
 ##    the dimension of the algebra of derivations of the algebra considered
-##    by the function <Ref Func="SingerAlg.LL4QuoDerDim"/>,
+##    by the function <Ref Func="SingerAlg.LL4QuoDerDim"/>
+##    or its &Julia; variant,
 ##  </Item>
 ##  <Mark><C>solutionCount</C>:</Mark>
 ##  <Item>
@@ -1099,7 +1301,8 @@ SingerAlg.SyntaxTreeOfInvariant:= function( str )
 ##  <#/GAPDoc>
 ##
 SingerAlg.InfoFromInvariantString:= function( data, str )
-    local labels, subspaces, inv_funs, list, empty, rows, tree, evl, result;
+    local labels, subspaces, inv_funs, list, empty, failure, rows, tree, evl,
+          result;
 
     labels:= [];
     subspaces:= [];
@@ -1108,10 +1311,12 @@ SingerAlg.InfoFromInvariantString:= function( data, str )
       inv_funs:= SingerAlg;
       list:= IdFunc;
       empty:= [];
+      failure:= fail;
     else
       inv_funs:= Julia.SingerAlg;
       list:= l -> JuliaToGAP( IsList, l, false );
       empty:= JuliaEvalString( "Int[]" );
+      failure:= JuliaEvalString( "nothing" );
     fi;
 
     # the initial subspaces
@@ -1149,9 +1354,13 @@ SingerAlg.InfoFromInvariantString:= function( data, str )
           return rec( derivationsDim:= Dimension( Derivations(
                           CanonicalBasis( SingerAlgebra(
                               paras[1], paras[3], GF(2) ) ) ) ) );
-        elif tree = "LL4QuoDerDim" and data.LL = 4 then
-          return rec( LL4QuoDerDim:= SingerAlg.LL4QuoDerDim( data,
-                                         SingerAlg.MaxZ ) );
+        elif tree = "LL4QuoDerDim" then
+          # This can occur only on the outermost level.
+          res:= inv_funs.LL4QuoDerDim( data, SingerAlg.MaxZ );
+          if res = failure then
+            Error( "LL4QuoDerDim reported a problem" );
+          fi;
+          return rec( LL4QuoDerDim:= res );
         fi;
       elif IsRecord( tree ) then
         args:= List( tree.args, evl );

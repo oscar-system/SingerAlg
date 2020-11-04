@@ -180,3 +180,104 @@ function NumberOfProductsInSubspace(data::Dict, J::Vector{Int}, I::Vector{Int}, 
     return (e, count)
 end
 
+function ReducedMultTable(T::Matrix{Int}, subset::Vector{Int}, tozero::Vector{Int})
+    @assert tozero ⊆ subset "wrong factor!"
+
+    diff = setdiff(subset, tozero)
+    lookup = fill(0, size(T, 1))
+    for i in 1:length(diff)
+      lookup[diff[i]] = i
+    end
+
+    ndiff = length(diff)
+    redT = zeros(Int, ndiff, ndiff)
+    union!(tozero, 0)
+    n = size(T, 1)
+    for i in diff
+      posi = lookup[i]
+      for j in diff
+        Tij = T[i,j]
+        if Tij != 0
+          posj = lookup[j]
+          posk = lookup[Tij]
+          if posk == 0
+            if ! (Tij in subset)
+              error("<subset> does not describe a subalgebra")
+            end
+          else
+            redT[posi, posj] = posk
+          end
+        end
+      end
+    end
+
+    return redT
+end
+
+# Assume the implementation from `bitarray.jl`.
+function flipbit!(B::BitArray, i::Int)
+    i1, i2 = Base.get_chunks_id(i)
+    u = UInt64(1) << i2
+    Bc = B.chunks
+    Bc[i1] = xor(Bc[i1], u)
+end
+
+function RightDerivationsDimension(T::Matrix{Int})
+    n = size(T, 1)
+    nn = n^2
+    A = BitArray{1}[]
+
+    # `heads[i] == 0` means no row in `A` has leading `true` at position `i`.
+    # `heads[i] == j > 0` means `A[j]` has leading `true` at position `i`.
+    heads = fill(0, nn)
+    for i in 1:n
+      for j in i:n
+        for m in 1:n
+          # Create a new row.
+          eqn = falses(nn)
+          k = T[i,j]
+          if k != 0
+            flipbit!(eqn, (k-1)*n+m)
+          end
+          for k in 1:n
+            if T[k,j] == m
+              flipbit!(eqn, (i-1)*n+k)
+            end
+            if T[i,k] == m
+              flipbit!(eqn, (j-1)*n+k)
+            end
+          end
+
+          # Reduce the new row with the known ones.
+          pos = findnext(eqn, 1)
+          while ! isnothing(pos)
+            h = heads[pos]
+            if h == 0
+              # extend the matrix
+              push!(A, eqn)
+              heads[pos] = length(A)
+              break
+            else
+              eqn = xor.(eqn, A[h])
+              pos = findnext(eqn, pos+1)
+            end
+          end
+        end
+      end
+    end
+
+    return nn - length(A)
+end
+
+function LL4QuoDerDim(data, maxdim = 50)
+    data[:LL] == 4 || return
+    q = data[:parameters][1]
+    z = data[:parameters][3]
+    n = z+1
+    T = SingerAlg.MultTable( data )
+    V = setdiff(2:n, filter(i -> all(x -> T[i,x] == 0, setdiff(2:n, [n+1-i])), 1:n))
+    length(V) <= maxdim || return
+    radser = BasesOfRadicalSeries(data)
+    u = ReducedMultTable(T, union(V, radser[2]), [n])
+    return RightDerivationsDimension(u)
+end
