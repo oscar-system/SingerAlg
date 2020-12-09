@@ -281,3 +281,75 @@ function LL4QuoDerDim(data, maxdim = 50)
     u = ReducedMultTable(T, union(V, radser[2]), [n])
     return RightDerivationsDimension(u)
 end
+
+#########################################################################
+##
+##  sparse matrix variant
+##
+function flipbit_sparse!(S::Set{Int}, i::Int)
+    if i in S
+      delete!(S, i)
+    else
+      push!(S, i )
+    end
+end
+
+function RightDerivationsDimensionSparse(T::Matrix{Int})
+    n = size(T, 1)
+    nn = n^2
+    A = Set{Int}[]
+
+    # `heads[i] == 0` means no row in `A` has leading `true` at position `i`.
+    # `heads[i] == j > 0` means `A[j]` has leading `true` at position `i`.
+    heads = fill(0, nn)
+    for i in 1:n
+      for j in i:n
+        for m in 1:n
+          # Create a new row.
+          eqn = Set{Int}()
+          k = T[i,j]
+          if k != 0
+            push!(eqn, (k-1)*n+m)
+          end
+          for k in 1:n
+            if T[k,j] == m
+              flipbit_sparse!(eqn, (i-1)*n+k)
+            end
+            if T[i,k] == m
+              flipbit_sparse!(eqn, (j-1)*n+k)
+            end
+          end
+
+          # Reduce the new row with the known ones.
+          while length(eqn) != 0
+            pos = minimum(eqn)
+            h = heads[pos]
+            if h == 0
+              # extend the matrix
+              push!(A, eqn)
+              heads[pos] = length(A)
+              break
+            else
+              # replace eqn by the symmetric difference of eqn and A[h]
+              symdiff!(eqn, A[h])
+            end
+          end
+        end
+      end
+    end
+
+    return nn - length(A)
+end
+
+function LL4QuoDerDimSparse(data, maxdim = 50)
+    data[:LL] == 4 || return
+    q = data[:parameters][1]
+    z = data[:parameters][3]
+    n = z+1
+    T = SingerAlg.MultTable( data )
+    V = setdiff(2:n, filter(i -> all(x -> T[i,x] == 0, setdiff(2:n, [n+1-i])), 1:n))
+    length(V) <= maxdim || return
+    radser = BasesOfRadicalSeries(data)
+    u = ReducedMultTable(T, union(V, radser[2]), [n])
+    return RightDerivationsDimensionSparse(u)
+end
