@@ -4,7 +4,7 @@
 Return the sorted array of prime divisors of `n`.
 """
 function PrimeDivisors(n::T) where {T<:Integer}
-    GAP.gap_to_julia(Vector{T}, GAP.Globals.PrimeDivisors(GAP.julia_to_gap(n)))
+    Vector{T}(GAP.Globals.PrimeDivisors(GAP.julia_to_gap(n)))
 end;
 
 
