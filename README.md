@@ -7,9 +7,10 @@ Description
 
 The aims of the GAP package **SingerAlg** are
 to document the computations needed in the papers
-[The Loewy Structure of Certain Fixpoint Algebras, Part I](https://doi.org/10.1016/j.jalgebra.2019.05.004)
+[The Loewy structure of certain fixpoint algebras, Part I](https://doi.org/10.1016/j.jalgebra.2019.05.004)
+(see also [the MR report](http://www.ams.org/mathscinet-getitem?mr=4102117))
 and
-[The Loewy Structure of Certain Fixpoint Algebras, Part II](http://arxiv.org/abs/1912.03065v1),
+[The Loewy structure of certain fixpoint algebras, Part II](http://arxiv.org/abs/1912.03065v1),
 and to give access to the related GAP/Julia functions and to the database of
 Singer algebras of dimension up to 10000.
 

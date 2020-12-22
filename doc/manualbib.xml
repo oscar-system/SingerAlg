@@ -39,14 +39,18 @@
     <name><first>Erzsébet</first><last>Horváth</last></name>
     <name><first>Burkhard</first><last>Külshammer</last></name>
   </author>
-  <title>The <C>L</C>oewy Structure of Certain Fixpoint Algebras, Part <C>I</C></title>
+  <title>The <C>L</C>oewy structure of certain fixpoint algebras, <C>P</C>art <C>I</C></title>
   <journal>J. Algebra</journal>
   <year>2020</year>
   <volume>558</volume>
   <pages>199&ndash;220</pages>
   <issn>0021-8693</issn>
+  <mrnumber>4102117</mrnumber>
+  <mrclass>20C05 (16P10 20G05)</mrclass>
+  <mrreviewer>Mary Schaps</mrreviewer>
+  <other type="doi">10.1016/j.jalgebra.2019.05.004</other>
   <other type="fjournal">Journal of Algebra</other>
-  <other type="doi">https://doi.org/10.1016/j.jalgebra.2019.05.004</other>
+  <other type="url">https://doi.org/10.1016/j.jalgebra.2019.05.004</other>
 </article></entry>
 
 <entry id="BHHK2"><misc>
@@ -56,8 +60,10 @@
     <name><first>Erzsébet</first><last>Horváth</last></name>
     <name><first>Burkhard</first><last>Külshammer</last></name>
   </author>
-  <title>The <C>L</C>oewy Structure of Certain Fixpoint Algebras, Part <C>II</C></title>
+  <title>The <C>L</C>oewy structure of certain fixpoint algebras, <C>P</C>art <C>II</C></title>
   <howpublished><URL>http://arxiv.org/abs/1912.03065</URL></howpublished>
+  <note>To appear in International Electronic Journal of Algebra</note>
+  <year>2021</year>
 </misc></entry>
 
 <entry id="JuliaInterface"><misc>
