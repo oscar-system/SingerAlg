@@ -11,9 +11,9 @@
      <!ENTITY ord "<Alt Only='LaTeX'>\textrm{ord}</Alt><Alt Not='LaTeX'>ord</Alt>">
      <!ENTITY FF "<Alt Only='LaTeX'>{{\mathbb F}}</Alt><Alt Only='Text'>FF</Alt><Alt Only='HTML'>&#x1D53D;</Alt>">
 
-     <!ENTITY VERSIONNUMBER "1.0.0">
-     <!ENTITY RELEASEMONTH "September">
-     <!ENTITY RELEASEYEAR "2020">
+     <!ENTITY VERSIONNUMBER "1.0.1">
+     <!ENTITY RELEASEMONTH "January">
+     <!ENTITY RELEASEYEAR "2021">
      <!ENTITY MAXZ "10000">
    ]>
 

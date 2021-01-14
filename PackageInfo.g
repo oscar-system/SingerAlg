@@ -6,13 +6,14 @@ SetPackageInfo( rec(
 PackageName :=
   "SingerAlg",
 Version :=
-  "1.0.0",
+  "1.0.1",
 MyWWWHome :=
   "http://www.math.rwth-aachen.de/~Thomas.Breuer",
 Subtitle :=
   "Loewy lengths of certain algebras",
 Date :=
-  "11/09/2020",   # Version 1.0.0
+  # "11/09/2020", # Version 1.0.0
+  "13/01/2021",   # Version 1.0.1
 License :=
   "GPL-3.0-or-later",
 SourceRepository := rec(
@@ -74,7 +75,7 @@ PackageDoc := [
   ) ],
 Dependencies := rec(
   GAP :=
-    ">= 4.10.1",                  # because of a few library functions
+    ">= 4.11.0",                  # because of a few library functions
   OtherPackagesLoadedInAdvance := [
     ],
   NeededOtherPackages := [

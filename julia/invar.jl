@@ -191,7 +191,7 @@ function ReducedMultTable(T::Matrix{Int}, subset::Vector{Int}, tozero::Vector{In
 
     ndiff = length(diff)
     redT = zeros(Int, ndiff, ndiff)
-    union!(tozero, 0)
+    tozero = union(tozero, 0)
     n = size(T, 1)
     for i in diff
       posi = lookup[i]
@@ -222,7 +222,7 @@ function flipbit!(B::BitArray, i::Int)
     Bc[i1] = xor(Bc[i1], u)
 end
 
-function RightDerivationsDimension(T::Matrix{Int})
+function RightDerivationsDimensionNonsparse(T::Matrix{Int})
     n = size(T, 1)
     nn = n^2
     A = BitArray{1}[]
@@ -269,17 +269,17 @@ function RightDerivationsDimension(T::Matrix{Int})
     return nn - length(A)
 end
 
-function LL4QuoDerDim(data, maxdim = 50)
+function LL4QuoDerDimNonsparse(data, maxdim = 50)
     data[:LL] == 4 || return
     q = data[:parameters][1]
     z = data[:parameters][3]
     n = z+1
-    T = SingerAlg.MultTable( data )
+    T = SingerAlg.MultTable(data)
     V = setdiff(2:n, filter(i -> all(x -> T[i,x] == 0, setdiff(2:n, [n+1-i])), 1:n))
     length(V) <= maxdim || return
     radser = BasesOfRadicalSeries(data)
     u = ReducedMultTable(T, union(V, radser[2]), [n])
-    return RightDerivationsDimension(u)
+    return RightDerivationsDimensionNonsparse(u)
 end
 
 #########################################################################
@@ -290,11 +290,11 @@ function flipbit_sparse!(S::Set{Int}, i::Int)
     if i in S
       delete!(S, i)
     else
-      push!(S, i )
+      push!(S, i)
     end
 end
 
-function RightDerivationsDimensionSparse(T::Matrix{Int})
+function RightDerivationsDimension(T::Matrix{Int})
     n = size(T, 1)
     nn = n^2
     A = Set{Int}[]
@@ -341,15 +341,111 @@ function RightDerivationsDimensionSparse(T::Matrix{Int})
     return nn - length(A)
 end
 
-function LL4QuoDerDimSparse(data, maxdim = 50)
+function LL4QuoDerDim(data, maxdim = 50)
     data[:LL] == 4 || return
     q = data[:parameters][1]
     z = data[:parameters][3]
     n = z+1
-    T = SingerAlg.MultTable( data )
+    T = SingerAlg.MultTable(data)
     V = setdiff(2:n, filter(i -> all(x -> T[i,x] == 0, setdiff(2:n, [n+1-i])), 1:n))
     length(V) <= maxdim || return
     radser = BasesOfRadicalSeries(data)
     u = ReducedMultTable(T, union(V, radser[2]), [n])
-    return RightDerivationsDimensionSparse(u)
+    return RightDerivationsDimension(u)
+end
+
+"""
+```
+julia> z = 171;  qs = [11, 68];
+
+julia> datalist = [SingerAlg.LoewyStructureInfo(q, SingerAlg.OrderMod(q, z), z) for q in qs];
+
+julia> ids = [setdiff(2:(z+1), [10, 37, 55, 64, 82, 100]),
+       [73, 91, 109, 118, 136, 163, 172]];
+
+julia> ideals = [[ids[1], ids[1]], [ids[2], ids[2]]];
+
+julia> labels = ["I", "J"];
+
+julia> SingerAlg.SubquoDerDim(datalist, labels, ideals, 150)
+
+julia> SingerAlg.SubquoDerDim(datalist, labels, ideals, 158)
+Dict{Symbol,Array{T,1} where T} with 2 entries:
+  :labels => ["I", "J"]
+  :derdim => [14179, 14201]
+
+```
+"""
+function SubquoDerDim(datalist, labels, subspaces, maxdim::T = 50) where T<:Integer
+    if length(Set([data[:parameters][3] for data in datalist])) != 1
+      error("`datalist` must belong to algebras of the same dimension")
+    end
+
+    # Consider only those invariant subspaces that are ideals.
+    ideals = Dict[]
+    for i in 1:length(subspaces)
+      list = subspaces[i]
+      good = filter(j -> BasisOfIdeal(datalist[j], list[j]) == list[j], 1:length(list))
+      if length(good) == length(list)
+        push!(ideals, Dict(:label => labels[i], :subsets => list))
+      elseif length(good) != 0
+        error("subspace is an ideal for some q but not for all of them?")
+      end
+    end
+
+    # Sort the info by increasing dimension.
+    sort!(ideals, by = r -> length(r[:subsets][1]))
+
+    # Run over pairs '[ I, J ]' of index lists with 'J \subseteq I':
+    # Compute the dimension of the derivations of the factor 'A{I} / A{J}'.
+    for i in 1:length(ideals)
+      l = ideals[i][:subsets]
+      for j in 1:(i-1)
+        derdims = Int[]
+        for k in 1:length(datalist)
+          if issubset(ideals[j][:subsets][k], l[k]) &&
+             length(l[k]) - length(ideals[j][:subsets][k]) <= maxdim
+            t = SingerAlg.MultTable(datalist[k])
+            t = SingerAlg.ReducedMultTable(t, l[k], ideals[j][:subsets][k])
+            push!(derdims, SingerAlg.RightDerivationsDimension(t))
+          else
+            push!(derdims, -1)
+          end
+        end
+        if any(x -> x != -1, derdims)
+          # 'J' is a subset of 'I' for some 'k' ...
+          if -1 in derdims
+            # ... but not for all 'k'
+            error("earlier decision by containment of inv. ideals?")
+          elseif length(datalist) == 1 || length(Set(derdims)) != 1
+            # We found a decision,
+            # or we are just computing the invariant for one algebra.
+            return Dict(:labels => [ideals[i][:label], ideals[j][:label]],
+                        :derdim => derdims)
+          end
+        end
+      end
+    end
+
+    # We did not find a subquotient that distinguishes some algebras.
+    return
+end
+
+function IsValidReduction(data, k)
+    Z = data[:parameters][3]
+    T = SingerAlg.MultTable(data)
+    for i in 1:(Z+1)
+      if mod(i, k) != 1
+        # Omit the antidiagonal.
+        for j in 1:(Z+1-i)
+          if mod(j, k) != 1
+            if T[i,j] != 0
+              # The multiplication is *not* zero outside, modulo socle.
+              return false
+            end
+          end
+        end
+      end
+    end
+    return true
 end

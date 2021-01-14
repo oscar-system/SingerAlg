@@ -115,6 +115,42 @@ gap> for z in [ 2 .. 40 ] do
 >      od;
 >    od;
 
+# Check that the implementations of 'ConsiderInvariantsByParameters'
+# in GAP and Julia yield the same results.
+gap> for l in Concatenation( evl1{ [ 1 .. 100 ] }, evl2a{ [ 1 .. 2 ] },
+>                            evl2b{ [ 1 .. 10 ] } ) do
+> Print( l, "\n" );
+>      z:= l[1];
+>      qs:= List( l[2], x -> x[1] );
+>      why:= l[4];
+>      inv_GAP:= ConsiderInvariantsByParameters( z, qs,
+>                    rec( maxnumber:= 500, RCdim:= 50, RCnum:= 500,
+>                         LL4QuoDerMax:= z, GAP_or_Julia:= "GAP" ) );
+>      if not inv_GAP.success then
+>        # (We know that the given bounds should suffice.)
+>        Error( "not successful for ", l );
+>      elif IsBound( Julia ) then
+>        inv_Julia:= ConsiderInvariantsByParameters( z, qs,
+>                        rec( maxnumber:= 500, RCdim:= 50, RCnum:= 500,
+>                             LL4QuoDerMax:= z ) );
+>        if inv_GAP <> inv_Julia then
+>          Error( "difference at ", l );
+>        fi;
+>      fi;
+>    od;
+gap> inv_GAP:= ConsiderInvariantsByParameters( 171, [ 11, 68 ],
+>                  rec( SubquoDerMax:= 158, GAP_or_Julia:= "GAP" ) );;
+gap> if not inv_GAP.success then
+>      # (We know that the given bounds should suffice.)
+>      Error( "not successful for ", l );
+>    elif IsBound( Julia ) then
+>      inv_Julia:= ConsiderInvariantsByParameters( 171, [ 11, 68 ],
+>                      rec( SubquoDerMax:= 158 ) );
+>      if inv_GAP <> inv_Julia then
+>        Error( "difference at z = 171" );
+>      fi;
+>    fi;
+
 ##
 gap> STOP_TEST( "invar.tst" );
 

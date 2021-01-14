@@ -122,6 +122,7 @@ Singer algebras via invariants.
 <#Include Label="SingerAlg.InfoFromInvariantString">
 <#Include Label="SingerAlg.NumberOfProductsInSubspace">
 <#Include Label="SingerAlg.LL4QuoDerDim">
+<#Include Label="SingerAlg.SubquoDerDim">
 
 </Section>
 

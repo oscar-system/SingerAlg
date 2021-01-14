@@ -175,7 +175,9 @@ end );
 ##  If <M>|K|</M> is larger than <A>bound</A> then <K>fail</K> is returned,
 ##  otherwise the list <M>[ e, o ]</M> such that <M>|X| = 2^e \cdot o</M>
 ##  holds.
-##  The default value for <A>bound</A> is <M>15</M>.
+##  The default value for <A>bound</A> is <M>15</M>,
+##  the maximal possible value for <A>bound</A> is <M>59</M>
+##  (which is much too large for practical purposes).
 ##  <P/>
 ##  <Example><![CDATA[
 ##  gap> data:= LoewyStructureInfoGAP( 23, 12, 259 );;
@@ -226,6 +228,9 @@ SingerAlg.NumberOfProductsInSubspace:= function( data, J, I, bound... )
 
     if Length( bound ) = 1 then
       bound:= bound[1];
+      if bound >= 60 then
+        Error( "<bound> cannot be larger than 59" );
+      fi;
     else
       bound:= 15;
     fi;
@@ -554,6 +559,171 @@ end;
 
 #############################################################################
 ##
+#F  SingerAlg.SubquoDerDim( <datalist>, <labels>, <subspaces>[, <maxdim>] )
+##
+##  <#GAPDoc Label="SingerAlg.SubquoDerDim">
+##  <ManSection>
+##  <Func Name="SingerAlg.SubquoDerDim"
+##   Arg='datalist, labels, subspaces[, maxdim]'/>
+##
+##  <Returns>
+##  a record or <K>fail</K>.
+##  </Returns>
+##  <Description>
+##  Let <A>datalist</A> be a list of length <M>n</M>, say,
+##  of records as returned by
+##  <Ref Oper="LoewyStructureInfoGAP" Label="for parameters"/>,
+##  which belong to Singer algebras <M>A_1, A_2, \ldots, A_n</M> of the same
+##  dimension.
+##  We consider the <M>A_i</M> as algebras over the field <M>F</M> with two
+##  elements.
+##  <P/>
+##  Let <A>labels</A> be a list of length <M>m</M>, say,
+##  that consists of strings.
+##  <P/>
+##  Let <A>subspaces</A> be a list of length <M>m</M>,
+##  where each entry is a list of length <M>n</M> such that
+##  <A>subspaces</A><M>[i][j]</M> is a list of positive integers that
+##  describes the basis of the subspace of <M>A_j</M> that corresponds to the
+##  label <A>labels</A><M>[i]</M>.
+##  <P/>
+##  Let <A>maxdim</A> be a positive integer; the default is <M>50</M>.
+##  <P/>
+##  <Ref Func="SingerAlg.SubquoDerDim"/> runs over the pairs
+##  <M>(i, j)</M> such that, for <M>1 \leq k \leq n</M>,
+##  both <A>subspaces</A><M>[i][k]</M> and <A>subspaces</A><M>[j][k]</M>
+##  describe bases of ideals <M>I_{{i,k}}</M> and <M>I_{{j,k}}</M>,
+##  respectively, in <M>A_k</M>,
+##  such that <M>I_{{j,k}} \subset I_{{i,k}}</M> holds
+##  and <M>I_{{i,k}} / I_{{j,k}}</M> has dimension at most <A>maxdim</A>.
+##  Then it computes the dimensions of the algebras of derivations of the
+##  quotients <M>I_{{i,k}} / I_{{j,k}}</M>.
+##  <P/>
+##  If not all of these dimensions are equal for some pair <M>(i, j)</M>
+##  then a record with the components
+##  <C>labels</C> (the list <C>[ </C><M>i</M><C>, </C><M>j</M><C> ]</C>)
+##  and <C>derdim</C> (the list of computed dimensions) is returned.
+##  Otherwise <K>fail</K> is returned.
+##  <P/>
+##  <Example><![CDATA[
+##  gap> z:= 171;;  qs:= [ 11, 68 ];;
+##  gap> datalist:= List( qs, q -> LoewyStructureInfoGAP( q, z ) );;
+##  gap> ids:= [ Difference( [ 2 .. z+1 ], [ 10, 37, 55, 64, 82, 100 ] ),
+##  >            [ 73, 91, 109, 118, 136, 163, 172 ] ];;
+##  gap> ideals:= [ [ ids[1], ids[1] ], [ ids[2], ids[2] ] ];;
+##  gap> labels:= [ "I", "J" ];;
+##  gap> SingerAlg.SubquoDerDim( datalist, labels, ideals, 150 );
+##  fail
+##  gap> SingerAlg.SubquoDerDim( datalist, labels, ideals, 158 );
+##  rec( derdim := [ 14179, 14201 ], labels := [ "I", "J" ] )
+##  ]]></Example>
+##  </Description>
+##  </ManSection>
+##  <#/GAPDoc>
+##
+SingerAlg.SubquoDerDim:= function( datalist, labels, subspaces, maxdim... )
+    local ideals, i, list, good, l, j, derdims, k, T;
+
+    if Length( maxdim ) = 0 or not IsPosInt( maxdim[1] ) then
+      maxdim:= 50;
+    else
+      maxdim:= maxdim[1];
+    fi;
+
+    if Length( Set( datalist, data -> data.parameters[3] ) ) <> 1 then
+      Error( "<datalist> must belong to algebras of the same dimension" );
+    fi;
+
+    # Consider only those invariant subspaces that are ideals.
+#T This could be generalized, later we only need that the smaller one
+#T is an ideal in the bigger one.  Would this help at all?
+    ideals:= [];
+    for i in [ 1 .. Length( subspaces ) ] do
+      list:= subspaces[i];
+      good:= Filtered( [ 1 .. Length( list ) ],
+                       j -> SingerAlg.BasisOfIdeal( datalist[j], list[j] )
+                            = list[j] );
+      if Length( good ) = Length( list ) then
+        Add( ideals, rec( label:= labels[i], subsets:= list ) );
+      elif Length( good ) <> 0 then
+        Error( "subspace is an ideal for some q but not for all of them?" );
+      fi;
+    od;
+
+    # Sort the info by increasing dimension.
+    SortBy( ideals, r -> Length( r.subsets[1] ) );
+
+    # Run over pairs '[ I, J ]' of index lists with 'J \subseteq I':
+    # Compute the dimension of the derivations of the factor 'A{I} / A{J}'.
+    for i in [ 1 .. Length( ideals ) ] do
+      l:= ideals[i].subsets;
+      for j in [ 1 .. i-1 ] do
+        derdims:= [];
+        for k in [ 1 .. Length( datalist ) ] do
+          if IsSubset( l[k], ideals[j].subsets[k] ) and
+             Length( l[k] ) - Length( ideals[j].subsets[k] ) <= maxdim then
+            T:= SingerAlg.MultTable( datalist[k] );
+            T:= SingerAlg.ReducedMultTable( T, l[k], ideals[j].subsets[k] );
+            derdims[k]:= SingerAlg.RightDerivationsDimension( T );
+          else
+            derdims[k]:= -1;
+          fi;
+        od;
+        if Set( derdims ) <> [ -1 ] then
+          # 'J' is a subset of 'I' for some 'k' ...
+          if -1 in derdims then
+            # ... but not for all 'k'
+            Error( "earlier decision by containment of inv. ideals?" );
+          elif Length( datalist ) = 1 or Length( Set( derdims ) ) <> 1 then
+            # We found a decision,
+            # or we are just computing the invariant for one algebra.
+            return rec( labels:= [ ideals[i].label, ideals[j].label ],
+                        derdim:= derdims );
+          fi;
+        fi;
+      od;
+    od;
+
+    return fail;
+end;
+
+
+#############################################################################
+##
+#F  SingerAlg.IsValidReduction( <data>, <k> )
+##
+##  Let <A>data</A> be a &GAP; record as returned by
+##  <Ref Oper="LoewyStructureInfoGAP" Label="for parameters"/>,
+##  that belongs to the algebra 'A[q,n,Z]', let 'k' be a divisor of 'Z',
+##  and set 'z = Z / k'.
+##  Return 'true' if the multiplication in 'A[q,n,Z]' is zero outside
+##  its natural subalgebra A[q,n,z], modulo the (common) socle,
+##  and 'false' otherwise.
+##
+SingerAlg.IsValidReduction:= function( data, k )
+    local Z, T, i, j;
+
+    Z:= data.parameters[3];
+    T:= SingerAlg.MultTable( data );
+    for i in [ 1 .. Z+1 ] do
+      if i mod k <> 1 then
+        # Omit the antidiagonal.
+        for j in [ 1 .. Z+1-i ] do
+          if j mod k <> 1 then
+            if T[i,j] <> 0 then
+              # The multiplication is *not* zero outside, modulo socle.
+              return false;
+            fi;
+          fi;
+        od;
+      fi;
+    od;
+    return true;
+end;
+
+
+#############################################################################
+##
 #F  ConsiderInvariantsByParameters( <z>, <qs>[, <bounds>] )
 ##
 ##  <#GAPDoc Label="ConsiderInvariantsByParameters">
@@ -606,6 +776,11 @@ end;
 ##  <Item>
 ##    If the component <C>LL4QuoDerMax</C> is bound then its value is taken
 ##    as the <C>maxdim</C> argument of <Ref Func="SingerAlg.LL4QuoDerDim"/>,
+##    the default is <M>50</M>.
+##  </Item>
+##  <Item>
+##    If the component <C>SubquoDerMax</C> is bound then its value is taken
+##    as the <C>maxdim</C> argument of <Ref Func="SingerAlg.SubquoDerDim"/>,
 ##    the default is <M>50</M>.
 ##  </Item>
 ##  </List>
@@ -712,13 +887,16 @@ end;
 ##    success := true )
 ##  gap> ConsiderInvariantsByParameters( 171, [ 11, 68 ] );
 ##  rec( comment := "no decision, checked 11 invariants", 
-##    labels := [ "J^1", "J^2", "J^3", "S_2", "Roots(0,2,1)", 
-##        "Annihilator(Roots(0,2,1))", "Power(J^1,2,1)", 
+##    labels := [ "J^3", "Power(J^1,2,1)", "Annihilator(Roots(0,2,1))", 
 ##        "Sum(Power(J^1,2,1),J^3)", 
-##        "Sum(Power(J^1,2,1),Annihilator(Roots(0,2,1)))", 
-##        "Annihilator(Power(J^1,2,1))", 
-##        "Annihilator(Sum(Power(J^1,2,1),Annihilator(Roots(0,2,1))))" ], 
+##        "Sum(Power(J^1,2,1),Annihilator(Roots(0,2,1)))", "J^2", "S_2", 
+##        "Annihilator(Sum(Power(J^1,2,1),Annihilator(Roots(0,2,1))))", 
+##        "Roots(0,2,1)", "Annihilator(Power(J^1,2,1))", "J^1" ], 
 ##    success := false )
+##  gap> res:= ConsiderInvariantsByParameters( 171, [ 11, 68 ],
+##  >              rec( SubquoDerMax:= 158 ) );;
+##  gap> res.success;
+##  true
 ##  ]]></Example>
 ##  </Description>
 ##  </ManSection>
@@ -801,7 +979,7 @@ BindGlobal( "ConsiderInvariantsByParameters", function( z, qs, bounds... )
     #   (which is used as exit condition in some situations), and
     # - 'false' if no improvement was found.
     DealWithNewEntry:= function( label, row )
-      local len, inv, set, pos;
+      local len, inv, set;
 
       len:= Length( row );
 
@@ -838,24 +1016,6 @@ BindGlobal( "ConsiderInvariantsByParameters", function( z, qs, bounds... )
       if Length( set ) <> 1 then
         return rec( success:= true,
                     lists:= List( set, val -> qs{ Positions( inv, val ) } ),
-                    label:= label,
-                    comment:= Concatenation( "total ",
-                                             String( Length( labels ) ),
-                                             " invariants checked" ) );
-      fi;
-
-      # Perhaps the dimensions are equal
-      # but the spaces themselves are equal to different spaces
-      # that were already found earlier.
-      pos:= List( [ 1 .. len ],
-                  i -> PositionProperty( subspaces, l -> l[i] = row[i] ) );
-      set:= Set( pos );
-      if Length( set ) <> 1 then
-# Apparently this does NOT happen at all in the checks for z <= 10000,
-# so print something if we arrive here.
-Print( "#I  unexpected decision by invariant ", label, "\n" );
-        return rec( success:= true,
-                    lists:= List( set, val -> qs{ Positions( pos, val ) } ),
                     label:= label,
                     comment:= Concatenation( "total ",
                                              String( Length( labels ) ),
@@ -1082,16 +1242,47 @@ fi;
       fi;
     fi;
 
-    # Step 3: Apply the root count where it is feasible.
+    # Sort the invariants by increasing dimension.
+    pi:= SortingPerm( List( subspaces, x -> length_fun( x[1] ) ) );
+    labels:= Permuted( labels, pi );
+    subspaces:= Permuted( subspaces, pi );
+
+    # Step 3: Compute the dimensions of derivations of quotients I/J.
+    if IsBound( bounds.SubquoDerMax ) then
+      maxdim:= bounds.SubquoDerMax;
+    else
+      maxdim:= 50;
+    fi;
+    if use_gap then
+      res:= inv_funs.SubquoDerDim( datalist, labels, subspaces, maxdim );
+    else
+      # Convert the inputs to Julia.
+      res:= inv_funs.SubquoDerDim( GAPToJulia( datalist ),
+                                   GAPToJulia( labels, true ),
+                                   GAPToJulia( subspaces, true ), maxdim );
+    fi;
+    if res <> failure then
+      if not use_gap then
+        # Convert the dictionary (which is a small object).
+        res:= JuliaToGAP( IsRecord, res, true );
+      fi;
+      set:= Set( res.derdim );
+      return rec(
+          success:= true,
+          lists:= List( set, val -> qs{ Positions( res.derdim, val ) } ),
+          label:= Concatenation( "SubquoDerDim(", res.labels[1], ",",
+                                 res.labels[2], ")" ),
+          comment:= Concatenation( "total ",
+                        String( Length( labels ) ), " invariants ",
+                        "plus LL4QuoDerDim plus SubquoDerDim checked" ) );
+    fi;
+
+    # Step 4: Apply the root count where it is feasible.
     if 0 < RCdim then
       # Try root counts for pairs of at most 'RCnum' invariants.
       min:= Minimum( Length( labels ), RCnum );
       m:= 0;
 
-      # Sort the invariants by increasing dimension.
-      pi:= SortingPerm( List( subspaces, x -> length_fun( x[1] ) ) );
-      labels:= Permuted( labels, pi );
-      subspaces:= Permuted( subspaces, pi );
       addcomment:= "";
 
       for i in [ 1 .. min ] do
@@ -1262,6 +1453,12 @@ end;
 ##    by the function <Ref Func="SingerAlg.LL4QuoDerDim"/>
 ##    or its &Julia; variant,
 ##  </Item>
+##  <Mark><C>SubquoDerDim</C>:</Mark>
+##  <Item>
+##    the dimension of the algebra of derivations of the subquotient
+##    described by <A>str</A> that is considered by the function
+##    <Ref Func="SingerAlg.SubquoDerDim"/> or its &Julia; variant,
+##  </Item>
 ##  <Mark><C>solutionCount</C>:</Mark>
 ##  <Item>
 ##    the pair <M>[ e, o ]</M> such that the number of solutions is
@@ -1291,6 +1488,10 @@ end;
 ##  >        LoewyStructureInfoGAP( 37, 12, 247 ),
 ##  >        "LL4QuoDerDim" );
 ##  rec( LL4QuoDerDim := 656 )
+##  gap> SingerAlg.InfoFromInvariantString(
+##  >        LoewyStructureInfoGAP( 68, 6, 171 ),
+##  >        "SubquoDerDim(J^2,J^3)" );
+##  rec( SubquoDerDim := 2025 )
 ##  gap> SingerAlg.InfoFromInvariantString(
 ##  >        LoewyStructureInfoGAP( 23, 12, 259 ),
 ##  >        "RC(J^3,J^1)" );
@@ -1335,7 +1536,8 @@ SingerAlg.InfoFromInvariantString:= function( data, str )
 
     # evaluate recursively
     evl:= function( tree )
-      local pos, paras, args, fun, res;
+      local pos, paras, args, fun, lvl, lbls, subspcs, res, k, invstr, q,
+            reddata;
 
       if IsString( tree ) then
         pos:= Position( labels, tree );
@@ -1363,8 +1565,49 @@ SingerAlg.InfoFromInvariantString:= function( data, str )
           return rec( LL4QuoDerDim:= res );
         fi;
       elif IsRecord( tree ) then
-        args:= List( tree.args, evl );
         fun:= tree.fun;
+        # First deal with the case where we must not evaluate the arguments.
+        if fun = "Reduction" then
+          # This can occur only on the outermost level.
+          # Verify that we really are in the claimed reduction situation
+          # from A[q,Z] to its natural subalgebra A[q,z], where Z = k*z,
+          # and the multiplication in A[q,Z] is zero outside A[q,z],
+          # modulo the (common) socle.
+          invstr:= str{ [ Position( str, ',' ) + 1 .. Length( str ) - 1 ] };
+          if IsRecord( data ) then
+            paras:= data.parameters;
+          else
+            paras:= Julia.Base.get( data, JuliaSymbol( "parameters" ), fail );
+          fi;
+          k:= Int( tree.args[1] );
+          if paras[3] mod k <> 0 then
+            Error( "<data> does not fit to the given invariant <str>" );
+          fi;
+          k:= paras[3] / k;
+          q:= paras[1];
+          if not inv_funs.IsValidReduction( data, k ) then
+            Error( "no valid reduction from <data>" );
+          fi;
+
+          # Verify that the given invariant for A[q,z] is admissible,
+          # that is, it belongs to a subspace or subquotient of
+          # A[q,z]/S(A[q,z]).
+          if not StartsWith( tree.args[2].fun, "SubquoDerDim" ) then
+            Error( "cannot verify that the given invariant '",
+                   invstr, "' is admissible" );
+          fi;
+
+          # Compute the invariant of the reduction.
+          # For that, change the context variable 'data'.
+          if IsRecord( data ) then
+            reddata:= LoewyStructureInfoGAP( q, paras[2], paras[3] / k );
+          else
+            reddata:= LoewyStructureInfoJulia( q, paras[2], paras[3] / k );
+          fi;
+          return SingerAlg.InfoFromInvariantString( reddata, invstr );
+        fi;
+
+        args:= List( tree.args, evl );
         if fun = "Ideal" then
           return inv_funs.BasisOfIdeal( data, args[1] );
         elif fun = "Annihilator" then
@@ -1384,10 +1627,35 @@ SingerAlg.InfoFromInvariantString:= function( data, str )
           return inv_funs.BasisOfIntersection( data, args[1], args[2] );
         elif fun = "PC" then
           return inv_funs.BasisOfPC( data, args[1], args[2] );
+        elif fun = "SubquoDerDim" then
+          # This can occur only on the outermost level.
+          # Compute the labels of the two arguments,
+          # and the corresp. subspaces.
+          lvl:= 0;
+          for pos in [ Position( str, '(' ) + 1 .. Length( str ) ] do
+            if str[ pos ] = '(' then
+              lvl:= lvl + 1;
+            elif str[ pos ] = ')' then
+              lvl:= lvl - 1;
+            elif str[ pos ] = ',' and lvl = 0 then
+              lbls:= [ str{ [ 14 .. pos-1 ] },
+                       str{ [ pos+1 .. Length( str ) - 1 ] } ];
+              subspcs:= List( lbls,
+                  l -> SingerAlg.InfoFromInvariantString( data, l ) );
+              break;
+            fi;
+          od;
+          res:= inv_funs.SubquoDerDim( [ data ], lbls,
+                    List( subspcs, x -> [ x.basisIndices ] ),
+                    SingerAlg.MaxZ );
+          if res = failure then
+            Error( "SubquoDerDim reported a problem" );
+          fi;
+          return rec( SubquoDerDim:= res.derdim[1] );
         elif fun = "RC" then
           # This can occur only on the outermost level.
           res:= inv_funs.NumberOfProductsInSubspace(
-                    data, args[1], args[2], SingerAlg.MaxZ );
+                    data, args[1], args[2], 59 );
           if not IsList( res ) then
             res:= JuliaToGAP( IsList, res, true );
           fi;

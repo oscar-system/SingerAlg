@@ -583,6 +583,23 @@ InstallMethod( GeneratorsOfAlgebraWithOne,
 
 #############################################################################
 ##
+#M  GeneratingSubsetOfCanonicalBasisOfSingerAlgebra( <triv> )
+##
+##  Provide a method for the trivial subspace/subalgebra of a Singer algebra.
+##  (We cannot be sure that this attribute gets set on creation.)
+##
+InstallMethod( GeneratingSubsetOfCanonicalBasisOfSingerAlgebra,
+    [ "IsVectorSpace and HasParent" ],
+    function( V )
+    if IsSingerAlgebra( Parent( V ) ) and IsTrivial( V ) then
+      return [];
+    fi;
+    TryNextMethod();
+    end );
+
+
+#############################################################################
+##
 #M  LoewyLengthGAP( <A> )
 #M  LoewyLengthGAP( <q>, <z> )
 #M  LoewyLengthGAP( <q>, <n>, <z>, <m> )

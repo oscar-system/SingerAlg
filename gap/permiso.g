@@ -257,7 +257,7 @@ end;
 ##  Test the necessary condition that the two overflow matrices define
 ##  isomorphic graphs, using nauty;
 ##  if the graphs are nonisomorphic then the two algebras are not
-##  permutation isomorphic;
+##  permutation isomorphic.
 ##
 ##  In order to speed up the call of nauty,
 ##  we first compute partitions (colourings) of the vertex sets

@@ -475,11 +475,11 @@ gap> for l in splits[2] do
 >      CallFuncList( applysplit, l );
 >    od;
 gap> ShowDistributionStatus();
-#I  min. no. of isom. types: 481058
+#I  min. no. of isom. types: 481069
 #I  max. no. of isom. types: 481744
-#I  no. of nontriv. classes: 660
-#I  no. of entries in these classes: 1545
-#I  no. of dimensions with open questions: 361
+#I  no. of nontriv. classes: 649
+#I  no. of entries in these classes: 1495
+#I  no. of dimensions with open questions: 350
 ]]></Example>
 
 <P/>

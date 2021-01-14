@@ -433,7 +433,7 @@ BindGlobal( "AllSingerAlgebraInfos", function( arg )
 ##  <Example>
 ##  gap> List( [ 2 .. 8 ], q -> IdSingerAlgebra( q, 7 ) );
 ##  [ [ 7, 2 ], [ 7, 3 ], [ 7, 2 ], [ 7, 3 ], [ 7, 3 ], fail, [ 7, 8 ] ]
-##  gap> IdSingerAlgebra( 68, 171 );
+##  gap> IdSingerAlgebra( 100, 259 );
 ##  fail
 ##  gap> IdSingerAlgebra( SingerAlgebra( 10, 11 ) );
 ##  [ 11, 2 ]
