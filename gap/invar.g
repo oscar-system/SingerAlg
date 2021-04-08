@@ -401,7 +401,7 @@ end;
 ##  if <A>T</A><M>[i,j] = k (\not= 0)</M> holds,
 ##  and <M>c_{{i,j,k}} = 0</M> otherwise.
 ##  A linear map <M>D\colon b_i \mapsto \sum_{{j=1}}^n d_{{i,j}} b_j</M>
-##  is a right derivation if the equation
+##  is a right derivation if and only if the equation
 ##  <M>\sum_{{k=1}}^n ( c_{{i,j,k}} d_{{k,m}} - c_{{k,j,m}} d_{{i,k}}
 ##  - c_{{i,k,m}} d_{{j,k}} ) = 0</M>
 ##  is satisfied for all <M>1 \leq i, j, m \leq n</M>.

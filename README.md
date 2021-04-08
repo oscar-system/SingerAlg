@@ -1,4 +1,3 @@
-
 The GAP 4 Package **SingerAlg**
 ===============================
 
@@ -66,6 +65,6 @@ Acknowledgement
 ---------------
 
 Thomas Breuer gratefully acknowledges support by
-the German Research Foundation (DFG) within the
+the German Research Foundation (DFG) -- Project-ID 286237555 -- within the
 [SFB-TRR 195 *Symbolic Tools in Mathematics and their Applications*](https://www.computeralgebra.de/sfb/).
 

@@ -192,11 +192,9 @@ such that there are canonical isomorphisms between
 <M>A[q_1,z]</M>, <M>A[q_2,z]</M>, <M>\ldots</M>.
 
 <Example><![CDATA[
-gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
-gap> str:= StringFile( Filename( datadir, "joinsCan.json" ) );;
-gap> joins:= EvalString( str );;
+gap> joins:= SingerAlg.ContentsOfDataFile( "joinsCan.json" )[2];;
 gap> L:= "dummy";;
-gap> for ll in joins[2] do
+gap> for ll in joins do
 >      # a pair of the form [ z, [ [ q1, q2, ... ], [ ... ], ... ] ]
 >      z:= ll[1];
 >      for i in [ 1 .. Length( KnownDistribution[z] ) ] do
@@ -278,12 +276,12 @@ by applying <Ref Func="EvalString" BookName="ref"/> to its contents.
 We use these data for refining our equivalence relation.
 If we are interested also in explicit permutation isomorphisms
 then we can use the file <F>joinsPermExt.json</F> instead.
-(Note that the size of this file is about 75 MB.)
+(Note that this file does not contain the permutations but abbreviated
+variants because the permutations would need about 75 MB of space.
+An earlier version of the package had contained a file of this size.)
 
 <Example><![CDATA[
-gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
-gap> str:= StringFile( Filename( datadir, "joinsPerm.json" ) );;
-gap> joins:= EvalString( str );;
+gap> joins:= SingerAlg.ContentsOfDataFile( "joinsPerm.json" )[2];;
 gap> applyjoin:= function( z, q1, q2 )
 >      local i, L, j, k;
 >      for i in [ 1 .. Length( KnownDistribution[z] ) ] do
@@ -304,7 +302,7 @@ gap> applyjoin:= function( z, q1, q2 )
 >      # This triple was not used at all.
 >      Print( "#E  unnecessary join: ", [ z, q1, q2 ], "\n" );
 >    end;;
-gap> for l in joins[2] do
+gap> for l in joins do
 >      # 'l' is a triple of the form [ z, q1, q2 ]
 >      CallFuncList( applyjoin, l );
 >    od;
@@ -367,9 +365,7 @@ We use these data for refining our equivalence relation.
 <P/>
 
 <Example><![CDATA[
-gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
-gap> str:= StringFile( Filename( datadir, "splitsComb.json" ) );;
-gap> splits:= EvalString( str );;
+gap> splits:= SingerAlg.ContentsOfDataFile( "splitsComb.json" )[2];;
 gap> applysplit:= function( z, entry, entries, why )
 >      local pos, len, elen, i;
 >      pos:= Position( KnownDistribution[z], entry );
@@ -388,7 +384,7 @@ gap> applysplit:= function( z, entry, entries, why )
 >        KnownDistribution[z]{ [ pos .. pos + elen ] }:= entries;
 >      fi;
 >    end;;
-gap> for l in splits[2] do
+gap> for l in splits do
 >      CallFuncList( applysplit, l );
 >    od;
 gap> ShowDistributionStatus();
@@ -426,7 +422,7 @@ which states that <M>A[3,40]</M> and <M>A[19,40]</M> are not isomorphic.
 <P/>
 
 <Example><![CDATA[
-gap> splits[2][1];
+gap> splits[1];
 [ 40, [ [ 3 ], [ 19 ] ], [ [ [ 3 ] ], [ [ 19 ] ] ], "Roots(0,2,1)" ]
 gap> b:= CanonicalBasis( SingerAlgebra( 3, 40, GF(2) ) );;
 gap> Dimension( Derivations( b ) );
@@ -468,10 +464,8 @@ with third argument <M>15</M> (which is the default value).
 <P/>
 
 <Example><![CDATA[
-gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
-gap> str:= StringFile( Filename( datadir, "splitsOther.json" ) );;
-gap> splits:= EvalString( str );;
-gap> for l in splits[2] do
+gap> splits:= SingerAlg.ContentsOfDataFile( "splitsOther.json" )[2];;
+gap> for l in splits do
 >      CallFuncList( applysplit, l );
 >    od;
 gap> ShowDistributionStatus();
@@ -581,9 +575,7 @@ Then we test whether all these candidates occur in the file that lists
 the precomputed canonical isomorphisms.
 
 <Example>
-gap> datadir:= DirectoriesPackageLibrary( "SingerAlg", "data" );;
-gap> str:= StringFile( Filename( datadir, "joinsCan.json" ) );;
-gap> joins:= EvalString( str )[2];;
+gap> joins:= SingerAlg.ContentsOfDataFile( "joinsCan.json" )[2];;
 gap> for entry in candidates do
 >      z:= entry[1];
 >      joinsz:= First( joins, l -> l[1] = z );

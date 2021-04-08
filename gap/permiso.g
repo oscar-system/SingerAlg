@@ -178,15 +178,15 @@ end;
 
 #############################################################################
 ##
-#F  SingerAlg.ProposedPermutationIsomorphism( <data1>, <data2> )
+#F  SingerAlg.ProposedPermutationIsomorphism( <data1>, <data2>[, "reduced"] )
 ##
 ##  <#GAPDoc Label="SingerAlg.ProposedPermutationIsomorphism">
 ##  <ManSection>
 ##  <Func Name="SingerAlg.ProposedPermutationIsomorphism"
-##   Arg='data1, data2'/>
+##   Arg='data1, data2[, "reduced"]'/>
 ##
 ##  <Returns>
-##  a string, a permutation, or <K>fail</K>.
+##  a string, a permutation, <K>fail</K>, or a record.
 ##  </Returns>
 ##  <Description>
 ##  Let <A>data1</A> and <A>data2</A> be the
@@ -194,7 +194,8 @@ end;
 ##  of two Singer algebras <M>A_1</M>, <M>A_2</M>, respectively,
 ##  of the same dimension <M>z+1</M>, say.
 ##  <P/>
-##  This function returns either a string that describes why there is no
+##  If only two arguments are given then
+##  this function returns either a string that describes why there is no
 ##  algebra isomorphism induced by mapping the canonical basis of <M>A_1</M>
 ##  to the permuted canonical basis of <M>A_2</M>,
 ##  or <K>fail</K> (indicating that the relevant functionality of the
@@ -230,6 +231,33 @@ end;
 ##  (For Singer algebras <M>A[q,z]</M> with <M>z \leq &MAXZ;</M>,
 ##  this is always the case, see Section <Ref Subsect="subsect:permiso"/>.)
 ##  <P/>
+##  If the string <C>"reduced"</C> is given as the third argument then
+##  a record is returned instead of a permutation,
+##  with the following components.
+##  <P/>
+##  <List>
+##  <Mark><C>preims</C>:</Mark>
+##  <Item>
+##    a subset of <M>[ 2 .. z ]</M> denoting indices of the canonical basis
+##    of <M>A_1</M>,
+##  </Item>
+##  <Mark><C>imgs</C>:</Mark>
+##  <Item>
+##    a subset of <M>[ 2 .. z ]</M> denoting indices of the canonical basis
+##    of <M>A_2</M>,
+##  </Item>
+##  <Mark><C>iso</C>:</Mark>
+##  <Item>
+##    a permutation.
+##  </Item>
+##  </List>
+##  <P/>
+##  The proposed permutation isomorphism maps the
+##  <C>preims</C><M>[i]</M>-th basis vector of <M>A_1</M> to the
+##  <C>imgs[</C><M>i</M><C>^iso]</C>-th basis vector of <M>A_2</M>,
+##  and maps the other basis vectors of <M>A_1</M> such that pairs
+##  <M>(b_i, b_{{z-i}})</M> go to such pairs in <M>A_2</M>.
+##  <P/>
 ##  <Example><![CDATA[
 ##  gap> # a canonical isomorphism
 ##  gap> data1:= LoewyStructureInfo( 3, 7 );;
@@ -244,6 +272,11 @@ end;
 ##  gap> t2:= SingerAlg.MultTable( data2 );;
 ##  gap> SingerAlg.IsInducedAlgebraIsomorphism( t1, t2, pi );
 ##  true
+##  gap> # the reduced variant
+##  gap> pi:= SingerAlg.ProposedPermutationIsomorphism( data1, data2,
+##  >                                                   "reduced" );;
+##  gap> pi.iso;  # achieved by a suitable sorting of the bases
+##  ()
 ##  gap> # no permutation isomorphism
 ##  gap> data1:= LoewyStructureInfo(  11, 171 );;
 ##  gap> data2:= LoewyStructureInfo(  68, 171 );;
@@ -280,14 +313,12 @@ end;
 ##    that is, p^k-th powers must be mapped to p^k-th powers.
 ##  - Considering the above criteria simultaneously means to consider the
 ##    common refinement of the partitions defined by these criteria.
-##  - Those b_i that are on the 1st Loewy layer and have no other nonzero
-##    product than b_z can be mapped arbitrarily to b_i with the same
-##    property, thus we can leave these b_i out from the graph to be
-##    constructed.
-##    (Well, the pair { b_i, b_{z-i} } with this property can be mapped
-##    arbitrarily to any such pair.)
+##  - For those b_i that are on the 1st Loewy layer and have no other nonzero
+##    product than b_z,
+##    the pair { b_i, b_{z-i} } can be mapped arbitrarily to any such pair,
+##    thus we can leave these b_i out from the graph to be constructed.
 ##
-SingerAlg.ProposedPermutationIsomorphism:= function( data1, data2 )
+SingerAlg.ProposedPermutationIsomorphism:= function( data1, data2, reduced... )
     local z, dim, part, images, i, preims, imgs, lens, colors1, colors2,
           mat1, mat2, g1, g2, iso;
 
@@ -300,20 +331,6 @@ SingerAlg.ProposedPermutationIsomorphism:= function( data1, data2 )
       return part;
     fi;
 
-    # We can map all those pairs { b_i, b_{z-i} } arbitrarily
-    # for which both entries do not occur as products,
-    # are on the first Loewy layer,
-    # and all products with other b_j are zero.
-    images:= [];
-    images[1]:= 1;
-    images[ z+1 ]:= z+1;
-    for i in [ 1 .. Length( part.freemult1 ) ] do
-      if 2 * part.freemult1[i] <= z+2 then
-        images[ part.freemult1[i] ]:= part.freemult2[i];
-        images[ z+2-part.freemult1[i] ]:= z+2-part.freemult2[i];
-      fi;
-    od;
-
     # Find out whether we have a chance to call the standalone in question.
     if ( not IsBound( GRAPE_NAUTY ) ) or
        ( ValueGlobal( "GRAPE_NAUTY" ) and
@@ -325,6 +342,7 @@ SingerAlg.ProposedPermutationIsomorphism:= function( data1, data2 )
       return fail;
     fi;
 
+    # We need not care about the "free multiplication" part.
     preims:= List( part.part1, l -> Difference( l, part.freemult1 ) );
     imgs:= List( part.part2, l -> Difference( l, part.freemult2 ) );
 
@@ -364,10 +382,46 @@ SingerAlg.ProposedPermutationIsomorphism:= function( data1, data2 )
       return "no graph isomorphism";
     fi;
 
-    # construct the proposed permutation on the whole basis
-    for i in [ 1 .. Length( preims ) ] do
-      images[ preims[i] ]:= imgs[ i^iso ];
-    od;
+    if Length( reduced ) = 1 and reduced[1] = "reduced" then
+      # Create a permutation for the non-free parts.
+      return rec( preims:= preims,
+                  imgs:= imgs,
+                  iso:= iso );
+    else
+      # Create a permutation on the whole basis.
+      images:= [ 1 ];
+      images[ z+1 ]:= z+1;
+      for i in [ 1 .. Length( part.freemult1 ) ] do
+        if 2 * part.freemult1[i] <= z+2 then
+          images[ part.freemult1[i] ]:= part.freemult2[i];
+          images[ z+2-part.freemult1[i] ]:= z+2-part.freemult2[i];
+        fi;
+      od;
+      for i in [ 1 .. Length( preims ) ] do
+        images[ preims[i] ]:= imgs[ i^iso ];
+      od;
+      return PermList( images );
+    fi;
+end;
+
+
+############################################################################
+##
+#F  SingerAlg.PermutationFromReducedPermutation( <data1>, <data2>, <pi> )
+##
+##  Recover the permutation on the whole basis from the reduced permutation
+##  as stored in the file 'data/joinsPermExt.json'.
+##
+SingerAlg.PermutationFromReducedPermutation:= function( data1, data2, pi )
+    local z, part, nonfree1, nonfree2, images;
+
+    z:= data1.parameters[3];
+    part:= SingerAlg.CommonPartition( data1, data2 );
+    nonfree1:= Difference( [ 2 .. z ], part.freemult1 );
+    nonfree2:= Difference( [ 2 .. z ], part.freemult2 );
+    images:= [ 1 .. z+1 ];
+    images{ part.freemult1 }:= part.freemult2;
+    images{ nonfree1 }:= Permuted( nonfree2, pi );
 
     return PermList( images );
 end;

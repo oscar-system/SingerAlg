@@ -73,10 +73,10 @@
     <name><first>Max</first><last>Horn</last></name>
   </author>
   <title><C>JuliaInterface</C>, <C>GAP</C> interface to <C>J</C>ulia,
-         <C>V</C>ersion 0.4.3</title>
+         <C>V</C>ersion 0.5.2</title>
   <howpublished><URL>https://github.com/oscar-system/GAP.jl</URL></howpublished>
-  <month>Aug</month>
-  <year>2020</year>
+  <month>Feb</month>
+  <year>2021</year>
   <note>GAP package</note>
 </misc></entry>
 

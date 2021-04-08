@@ -494,7 +494,7 @@ DeclareGlobalFunction( "OrderModExt" );
 ##  <Cite Key="BHHK2"/> from which it follows that the Loewy length of the
 ##  algebra <M>A[</M><A>q</A>,<A>z</A><M>]</M> is equal to the upper bound
 ##  <M>\lfloor <A>n</A> (<A>q</A>-1) / <A>m</A> \rfloor + 1</M>, where
-##  <A>n</A><M> = </M><C>OrderMod(</C><A>q</A><C>, </C><A>z</A><C>)</C>,
+##  <M><A>n</A> =</M> <C>OrderMod(</C><A>q</A><C>, </C><A>z</A><C>)</C>,
 ##  <M>e = (<A>q</A>^{<A>n</A>}-1) / <A>z</A></M>,
 ##  and <M>m = m(<A>q</A>, e)</M>;
 ##  if no such criterion was found then the returned string is empty.

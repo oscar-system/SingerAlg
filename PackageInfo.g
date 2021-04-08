@@ -6,14 +6,15 @@ SetPackageInfo( rec(
 PackageName :=
   "SingerAlg",
 Version :=
-  "1.0.1",
+  "1.0.2",
 MyWWWHome :=
   "http://www.math.rwth-aachen.de/~Thomas.Breuer",
 Subtitle :=
   "Loewy lengths of certain algebras",
 Date :=
   # "11/09/2020", # Version 1.0.0
-  "13/01/2021",   # Version 1.0.1
+  # "13/01/2021", # Version 1.0.1
+  "08/04/2021",   # Version 1.0.2
 License :=
   "GPL-3.0-or-later",
 SourceRepository := rec(
@@ -97,7 +98,7 @@ AvailabilityTest :=
 TestFile :=
   "tst/testauto.g",
 Keywords :=
-  [ "Loewy length", "Loewy vector" ],
+  [ "Loewy length", "Loewy vector", "GAP-Julia integration" ],
 ) );
 
 

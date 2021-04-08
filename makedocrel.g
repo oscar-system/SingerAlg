@@ -5,7 +5,7 @@ SetInfoLevel( InfoGAPDoc, 2 );
 
 SetGapDocLaTeXOptions( "nocolor", "utf8" );
 
-pathtodoc:= ".";;
+pathtodoc:= "doc";;
 main:= "main.xml";;
 pkgname:= "SingerAlg";;
 
@@ -19,7 +19,7 @@ bookname:= str{ [ pos + 1 .. pos2 - 1 ] };;
 
 pathtoroot:= "../../..";;
 
-pathtotst:= "../tst";;
+pathtotst:= "tst";;
 authors:= [ "Thomas Breuer" ];;
 
 files:= [

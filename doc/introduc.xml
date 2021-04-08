@@ -259,12 +259,16 @@ The development of this &GAP; package has been supported
 by the <URL><Link>https://www.computeralgebra.de/sfb/</Link>
 <LinkText>SFB-TRR 195
 <Q>Symbolic Tools in Mathematics and their Applications</Q></LinkText></URL>
-(from 2017 until 2020).
+(Project-ID 286237555, since 2017).
+
+<P/>
 
 Thanks to the coauthors of the papers <Cite Key="BHHK1"/> and
 <Cite Key="BHHK2"/>, Erzsébet Horváth, László Héthelyi,
 and Burkhard Külshammer, for many discussions and suggestions
 that contributed to this package.
+
+<P/>
 
 Thanks to Bettina Eick for hints about invariants,
 see Section <Ref Sect="sect:invariants"/>.
