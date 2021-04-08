@@ -28,7 +28,7 @@ gap> OneSingerAlgebraInfo( "z", 7 ).z;
 7
 
 ## Check some of the stored permutation isomorphisms.
-gap> joins:= SingerAlg.ContentsOfDataFile( "joinsPermExt.json" );;
+gap> joins:= SingerAlg.ContentsOfDataFile( "joinsPermExt.json" )[2];;
 gap> for entry in joins{ [ 1 .. 50 ] } do
 >      z:= entry[1];
 >      q1:= entry[2];
