@@ -8,7 +8,7 @@ PackageName :=
 Version :=
   "1.0.2",
 MyWWWHome :=
-  "http://www.math.rwth-aachen.de/~Thomas.Breuer",
+  "https://www.math.rwth-aachen.de/~Thomas.Breuer",
 Subtitle :=
   "Loewy lengths of certain algebras",
 Date :=
