@@ -53,7 +53,7 @@
   <other type="url">https://doi.org/10.1016/j.jalgebra.2019.05.004</other>
 </article></entry>
 
-<entry id="BHHK2"><misc>
+<entry id="BHHK2"><article>
   <author>
     <name><first>Thomas</first><last>Breuer</last></name>
     <name><first>László</first><last>Héthelyi</last></name>
@@ -61,10 +61,15 @@
     <name><first>Burkhard</first><last>Külshammer</last></name>
   </author>
   <title>The <C>L</C>oewy structure of certain fixpoint algebras, <C>P</C>art <C>II</C></title>
-  <howpublished><URL>http://arxiv.org/abs/1912.03065</URL></howpublished>
-  <note>To appear in International Electronic Journal of Algebra</note>
+  <journal>Int. Electron. J. Algebra</journal>
   <year>2021</year>
-</misc></entry>
+  <volume>30</volume>
+  <pages>16&ndash;65</pages>
+  <issn>1306-6048</issn>
+  <other type="doi">10.24330/ieja.969577</other>
+  <other type="fjournal">International Electronic Journal of Algebra</other>
+  <other type="url">https://doi.org/10.24330/ieja.969577</other>
+</article></entry>
 
 <entry id="JuliaInterface"><misc>
   <author>
